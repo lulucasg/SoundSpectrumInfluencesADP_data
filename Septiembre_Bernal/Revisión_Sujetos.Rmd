@@ -1,0 +1,130 @@
+---
+title: "Revisión de Sujetos Individuales"
+output: html_document
+date: "2023-10-05"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+library(readr)
+library(dplyr)
+library(here)
+library(ggplot2)
+library(plotrix)
+#library(segmented)
+library(Routliers)
+library(tidyverse)
+library(ggpubr)
+library(car)
+library(data.table)
+library(lme4)
+#library(nlme)
+library(emmeans)
+#library(sjstats)
+#library(lmerTest)
+library(MuMIn)
+#library(nortest)
+```
+
+## Read data
+```{r, include=FALSE}
+dir_1k_DR <- "./Data_1k_DR"
+data_1k_DR <- 
+    list.files(path=dir_1k_DR, pattern = "*.csv",full.names = TRUE) %>% 
+    map_df(~fread(.) %>% mutate(trial_Order = row_number())) %>%
+    mutate(freq = "1k")
+
+rm(dir_1k_DR)
+
+# Corregimos la columna de condicion con una etiqueta mas legible
+data_1k_DR$condicion[data_1k_DR$condicion==0] <- "WW"
+data_1k_DR$condicion[data_1k_DR$condicion==1] <- "LL"
+data_1k_DR$condicion[data_1k_DR$condicion==2] <- "LW"
+data_1k_DR$condicion[data_1k_DR$condicion==3] <- "WL"
+
+orden_bloques <- read.csv("./orden_bloques.csv")
+data_1k_DR <- merge(x=orden_bloques,y=data_1k_DR,
+                             by=c("nsub","condicion"))
+
+# Erase redundant columns
+data_1k_DR <- data_1k_DR[, !names(data_1k_DR) %in% c("bloque","altura")]
+
+rm(orden_bloques)
+```
+
+## Log-Log Distance-Responses
+
+```{r, echo=FALSE, include=FALSE}
+
+data_1k_DR$dist_log <- log10(data_1k_DR$distancia) 
+data_1k_DR$resp_log <- log10(data_1k_DR$respuesta)
+
+```
+
+## Subject dismissal
+
+Before the evaluation, subjects were asked to complete a form with demographic information. Subject number 4 expressed hearing impairment in one ear and subjetcs number 56 and 69 expressed tinitus. So we decided to exclude there data from the analysis.
+
+```{r, message=FALSE,error=FALSE,warning=FALSE,include=FALSE}
+data_1k_DR <- data_1k_DR[!(data_1k_DR$nsub %in% c(4,56,69)), ]
+```
+
+
+## MCD
+```{r, echo=FALSE, warning=FALSE}
+data_clean <- tibble()
+Nsubs <- unique(data_1k_DR$nsub)
+Conds <- unique(data_1k_DR$condicion)
+for (N in Nsubs[!Nsubs %in% c(1,18,55)]){
+  for (C in Conds){
+  data_N <- data_1k_DR %>% filter(nsub==N, condicion==C)
+
+  outliers_N <- outliers_mcd(x = cbind(data_N$dist_log,data_N$resp_log))
+  outliers_list <- outliers_N$outliers_val
+
+# Eliminar outliers multivariados!
+  outliers_index <-  which(data_N$dist_log%in%outliers_list$X1 & 
+                          data_N$resp_log%in%outliers_list$X2)
+
+  if (length(outliers_index)!=0){
+    data_N <- data_N[-outliers_index, ]
+    }
+  data_clean <- rbind(data_clean,data_N)
+  }
+}
+rm(data_N,outliers_list,outliers_N,outliers_index,C,Conds,N,Nsubs)
+```
+
+
+
+
+```{r}
+sujeto <- data_1k_DR %>% filter(nsub==12, condicion=="WW", itrial<7)
+
+iqr <- IQR(sujeto$resp_log, na.rm = TRUE)
+sujeto$resp_log
+zero_iqr_columns <- sapply(data, function(x) {
+  iqr <- IQR(x, na.rm = TRUE)
+  if (is.na(iqr)) return(FALSE)
+  iqr == 0
+})
+
+outliers_mcd(x=cbind(sujeto$dist_log,sujeto$resp_log), alpha = .01, h=0.75)
+```
+## MCD Manual
+
+```{r}
+library(MASS)
+alpha <- .01
+
+sj_matrix <- cbind(sujeto$dist_log, sujeto$resp_log)
+
+output75 <- cov.mcd(sj_matrix, quantile.used = nrow(sj_matrix)*.75)
+mhmcd75 <- mahalanobis(sj_matrix, output75$center, output75$cov)
+cutoff <- (qchisq(p = 1 - alpha, df = ncol(sj_matrix)))
+names_outlier_MCD75 <- which(mhmcd75 > cutoff)
+excluded_mcd75 <- names_outlier_MCD75
+sj_clean_mcd <- sj_matrix[-excluded_mcd75, ]
+sj_matrix[excluded_mcd75, ]
+```

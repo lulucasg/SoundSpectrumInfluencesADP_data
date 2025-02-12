@@ -1,0 +1,585 @@
+---
+title: "Comparación distancias <7 y >6"
+output: html_document
+date: "2023-10-04"
+---
+
+```{r setup, include=FALSE, echo=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+library(readr)
+library(dplyr)
+library(here)
+library(ggplot2)
+#library(plotrix)
+#library(segmented)
+library(Routliers)
+library(tidyverse)
+library(ggpubr)
+library(car)
+library(data.table)
+library(lme4)
+#library(nlme)
+library(emmeans)
+#library(sjstats)
+library(lmerTest)
+library(MuMIn)
+#library(nortest)
+```
+
+## Read data
+```{r, include=FALSE}
+dir_1k_DR <- "./Data_1k_DR"
+data_1k_DR <- 
+    list.files(path=dir_1k_DR, pattern = "*.csv",full.names = TRUE) %>% 
+    map_df(~fread(.) %>% mutate(trial_Order = row_number())) %>%
+    mutate(freq = "1k")
+
+rm(dir_1k_DR)
+
+# Corregimos la columna de condicion con una etiqueta mas legible
+data_1k_DR$condicion[data_1k_DR$condicion==0] <- "WW"
+data_1k_DR$condicion[data_1k_DR$condicion==1] <- "LL"
+data_1k_DR$condicion[data_1k_DR$condicion==2] <- "LW"
+data_1k_DR$condicion[data_1k_DR$condicion==3] <- "WL"
+
+orden_bloques <- read.csv("./orden_bloques.csv")
+data_1k_DR <- merge(x=orden_bloques,y=data_1k_DR,
+                             by=c("nsub","condicion"))
+
+# Erase redundant columns
+data_1k_DR <- data_1k_DR[, !names(data_1k_DR) %in% c("bloque","altura")]
+
+rm(orden_bloques)
+```
+
+## Log-Log Distance-Responses
+
+We apply logarithms to the response and distance observations in order to make linear regressions between the variables and obtain a slope indicating distance compression
+
+<div>
+
+<p style="text-align:center;">
+
+<img src="./img/form.png" alt="JuveYell" width="250px"/>
+
+</p>
+
+
+Where <img src="./img/alpha.png" alt="JuveYell" width="10px"/> is the compression
+
+```{r, echo=FALSE, include=FALSE}
+
+data_1k_DR$dist_log <- log10(data_1k_DR$distancia) 
+data_1k_DR$resp_log <- log10(data_1k_DR$respuesta)
+
+```
+
+## Subject dismissal
+
+Before the evaluation, subjects were asked to complete a form with demographic information. 
+  -Subject 4 expressed hearing impairment in one ear.
+  -Subjetcs 56 and 69 expressed tinitus. 
+  -Subject 55 missed the Non-Filtered  block (Wide or WW). 
+We decided to exclude there data from the analysis.
+
+```{r, message=FALSE,error=FALSE,warning=FALSE,include=FALSE}
+data_1k_DR <- data_1k_DR[!(data_1k_DR$nsub %in% c(4,55,56,69)), ]
+```
+
+##  1-6 
+### 1-6 MCD
+
+We applied the *Minimum Covariance Determinant* criteria to detect multivariate outliers.
+
+
+```{r, echo=FALSE, warning=FALSE, error=FALSE, include=FALSE}
+dt_1_6 <- tibble()
+Nsubs <- unique(data_1k_DR$nsub)
+Conds <- unique(data_1k_DR$condicion)
+for (N in Nsubs){
+  for (C in Conds){
+  # Filtro las distancias menores a 7
+    data_N <- data_1k_DR %>% filter(nsub==N, condicion==C, itrial<7)
+  
+  # Chequea si hay variabilidad en los datos
+  if(IQR(data_N$resp_log, na.rm = TRUE) != 0){
+    
+  outliers_N <- outliers_mcd(x=cbind(data_N$dist_log,data_N$resp_log), 
+                             alpha = .01, h=0.75)
+  outliers_list <- outliers_N$outliers_val
+
+# Eliminar outliers multivariados!
+  outliers_index <-  which(data_N$dist_log%in%outliers_list$X1 & 
+                          data_N$resp_log%in%outliers_list$X2)
+
+  if (length(outliers_index)!=0){
+    data_N <- data_N[-outliers_index, ]
+    }
+  }
+   dt_1_6 <- rbind(dt_1_6,data_N)
+  }
+}
+rm(data_N,outliers_list,outliers_N,outliers_index,C,Conds,N,Nsubs)
+```
+
+### 1-6 LM
+```{r include=FALSE}
+dt_sl_1_6 <- tibble()
+sresids <- vector()
+
+Nsubs <- unique(dt_1_6$nsub)
+Conds <- unique(dt_1_6$condicion)
+for (N in Nsubs){
+  for (C in Conds){
+  data_N <- dt_1_6 %>% filter(nsub==N, condicion==C)
+  linear.model <- lm(resp_log~dist_log,data_N)
+  data_N$slope <- linear.model$coefficients[2]
+  data_N$intercept <- linear.model$coefficients[1]
+  data_N$res <- as.vector(rstandard(linear.model))
+  dt_sl_1_6 <- rbind(dt_sl_1_6,data_N)
+  sresids <- append(sresids, as.vector(rstandard(linear.model)))
+  }
+}
+rm(data_N,C,Conds,N,Nsubs, linear.model,sresids)
+
+dt_1_6 <- dt_sl_1_6
+dt_sl_1_6 <- dt_sl_1_6 %>%
+  summarise(nsub, condicion, orden_bloque, slope, intercept, freq) %>%
+  unique()
+
+```
+### 1-6 MAD
+
+```{r, include=FALSE}
+slope_1k_WW <- dt_sl_1_6 %>% filter(condicion=="WW")
+slope_1k_LL <- dt_sl_1_6 %>% filter(condicion=="LL")
+slope_1k_WL <- dt_sl_1_6 %>% filter(condicion=="WL")
+slope_1k_LW <- dt_sl_1_6 %>% filter(condicion=="LW")
+
+# 1k
+outliers <-outliers_mad(slope_1k_WW$slope)
+#outliers$limits[2]
+slope_1k_WW<- slope_1k_WW[slope_1k_WW$slope<outliers$limits[2],]
+
+outliers <-outliers_mad(slope_1k_LL$slope)
+#outliers$limits[2]
+slope_1k_LL<- slope_1k_LL[slope_1k_LL$slope<outliers$limits[2],]
+
+outliers <-outliers_mad(slope_1k_WL$slope)
+#outliers$limits[2]
+slope_1k_WL<- slope_1k_WL[slope_1k_WL$slope<outliers$limits[2],]
+
+outliers <-outliers_mad(slope_1k_LW$slope)
+#outliers$limits[2]
+slope_1k_LW<- slope_1k_LW[slope_1k_LW$slope<outliers$limits[2],]
+
+
+dt_sl_1_6 <- (rbind(slope_1k_LL,slope_1k_WW,
+                            slope_1k_LW,slope_1k_WL))
+
+count_conditions <- dt_sl_1_6 %>% 
+  group_by(nsub) %>% 
+  summarise(n = n())
+drops <- count_conditions %>% subset(n!=4)
+
+dt_sl_1_6 <- dt_sl_1_6[!(dt_sl_1_6$nsub%in%
+                                                 drops$nsub), ]
+
+dt_1_6 <- dt_1_6[!(dt_1_6$nsub%in%
+                             drops$nsub), ]
+
+rm(count_conditions, outliers,drops)
+rm(slope_1k_LL, slope_1k_WW, slope_1k_LW, slope_1k_WL)
+```
+
+## 7-12
+### 7-12 MCD
+
+```{r, echo=FALSE, warning=FALSE,include=FALSE}
+dt_7_12 <- tibble()
+Nsubs <- unique(data_1k_DR$nsub)
+Conds <- unique(data_1k_DR$condicion)
+for (N in Nsubs){
+  for (C in Conds){
+  # Filtro las distancias menores a 7
+    data_N <- data_1k_DR %>% filter(nsub==N, condicion==C, itrial>6)
+  
+  # Chequea si hay variabilidad en los datos
+  if(IQR(data_N$resp_log, na.rm = TRUE) != 0){
+    
+  outliers_N <- outliers_mcd(x=cbind(data_N$dist_log,data_N$resp_log), 
+                             alpha = .01, h=0.75)
+  outliers_list <- outliers_N$outliers_val
+
+  # Eliminar outliers multivariados!
+  outliers_index <-  which(data_N$dist_log%in%outliers_list$X1 & 
+                          data_N$resp_log%in%outliers_list$X2)
+
+  if (length(outliers_index)!=0){
+    data_N <- data_N[-outliers_index, ]
+    }
+  }
+
+    dt_7_12 <- rbind(dt_7_12,data_N)
+  }
+}
+rm(data_N,outliers_list,outliers_N,outliers_index,C,Conds,N,Nsubs)
+```
+
+### 7-12 LM
+```{r include=FALSE}
+dt_sl_7_12 <- tibble()
+sresids <- vector()
+
+Nsubs <- unique(dt_7_12$nsub)
+Conds <- unique(dt_7_12$condicion)
+for (N in Nsubs){
+  for (C in Conds){
+  data_N <- dt_7_12 %>% filter(nsub==N, condicion==C)
+  linear.model <- lm(resp_log~dist_log,data_N)
+  data_N$slope <- linear.model$coefficients[2]
+  data_N$intercept <- linear.model$coefficients[1]
+  data_N$res <- as.vector(rstandard(linear.model))
+  dt_sl_7_12 <- rbind(dt_sl_7_12,data_N)
+  sresids <- append(sresids, as.vector(rstandard(linear.model)))
+  }
+}
+rm(data_N,C,Conds,N,Nsubs, linear.model)
+
+dt_7_12 <- dt_sl_7_12
+dt_sl_7_12 <- dt_sl_7_12 %>%
+  summarise(nsub, condicion, orden_bloque, slope, intercept, freq) %>%
+  unique()
+
+```
+
+### 7-12 MAD
+```{r}
+slope_1k_WW <- dt_sl_7_12 %>% filter(condicion=="WW")
+slope_1k_LL <- dt_sl_7_12 %>% filter(condicion=="LL")
+slope_1k_WL <- dt_sl_7_12 %>% filter(condicion=="WL")
+slope_1k_LW <- dt_sl_7_12 %>% filter(condicion=="LW")
+
+# 1k
+outliers <-outliers_mad(slope_1k_WW$slope)
+#outliers$limits[2]
+slope_1k_WW<- slope_1k_WW[slope_1k_WW$slope<outliers$limits[2],]
+
+outliers <-outliers_mad(slope_1k_LL$slope)
+#outliers$limits[2]
+slope_1k_LL<- slope_1k_LL[slope_1k_LL$slope<outliers$limits[2],]
+
+outliers <-outliers_mad(slope_1k_WL$slope)
+#outliers$limits[2]
+slope_1k_WL<- slope_1k_WL[slope_1k_WL$slope<outliers$limits[2],]
+
+outliers <-outliers_mad(slope_1k_LW$slope)
+#outliers$limits[2]
+slope_1k_LW<- slope_1k_LW[slope_1k_LW$slope<outliers$limits[2],]
+
+
+dt_sl_7_12 <- (rbind(slope_1k_LL,slope_1k_WW,
+                            slope_1k_LW,slope_1k_WL))
+
+count_conditions <- dt_sl_7_12 %>% 
+  group_by(nsub) %>% 
+  summarise(n = n())
+drops <- count_conditions %>% subset(n!=4)
+
+dt_sl_7_12 <- dt_sl_7_12[!(dt_sl_7_12$nsub %in% 
+                             drops$nsub), ]
+
+dt_7_12 <- dt_7_12[!(dt_7_12$nsub%in%
+                             drops$nsub), ]
+
+rm(count_conditions, outliers)
+rm(slope_1k_LL, slope_1k_WW, slope_1k_LW, slope_1k_WL)
+```
+
+
+## 1-6 BoxPlot
+```{r, message=FALSE, warning=FALSE}
+#cols <- c("#505160", "#68829E", "#AEBD38", "#598234")
+cols <- c("#2E2300", "#6E6702", "#C05805", "#DB9501")
+
+
+plt_1k_slope <- ggplot(dt_sl_1_6, 
+                       aes(x=condicion, y=slope, fill=condicion)) + 
+  stat_boxplot(geom = "errorbar",
+               width = 0.25) + 
+  geom_boxplot(alpha=0.8, outlier.colour=NA, width = 0.4)+
+   scale_fill_manual(values = cols,
+                    limits = c('WW', 'LL', 'WL', 'LW'), 
+                    labels = c('Wide', 'Low', 'Wide-Low', 'Low-Wide'),
+                    guide = guide_none()) + 
+  scale_y_continuous(limits=c(-.5, 1.84)) +
+  scale_x_discrete(limits = c('WW', 'LL', 'WL', 'LW')) +
+  labs(title="1-6 Slopes per condition", y='Slopes', x='Condition')+
+ # # WW- LW
+ #  annotate("text", x = 2.5, y = 1.83,  label = "***", size = 4) +
+ #  annotate("segment", x = 0.7, xend = 4.2, y = 1.8, 
+ #            yend = 1.8, colour = "black", size=.2, alpha=1,) +
+ #  # LL - LW
+ #  annotate("text", x = 3, y = 1.73,  label = "***", size = 4) +
+ #  annotate("segment", x = 1.75, xend = 4.2, y = 1.7, 
+ #            yend = 1.7, colour = "black", size=.2, alpha=1,) +
+ #  # WW- WL
+ #  annotate("text", x = 1.9, y = 1.63,  label = "***", size = 4) +
+ #  annotate("segment", x = 0.7, xend = 3.2, y = 1.6, 
+ #            yend = 1.6, colour = "black", size=.2, alpha=1,) +
+ #  # LL - WL
+ #   annotate("text", x = 2.5, y = 1.53,  label = "***", size = 4) +
+ #   annotate("segment", x = 1.75, xend = 3.2, y = 1.5, 
+ #            yend = 1.5, colour = "black", size=.2, alpha=1,) +
+ #  #WW - LL
+ #   annotate("text", x = 1.45, y = 1.43,  label = "***", size = 4) +
+ #   annotate("segment", x = 0.7, xend = 2.2, y = 1.4, 
+ #            yend = 1.4, colour = "black", size=.2, alpha=1,) +
+  theme(axis.title.x = element_text(size = 9),
+        axis.title.y = element_text(size = 9),
+        plot.title = element_text(size = 10, hjust = 0.5))
+plt_1k_slope
+```
+
+## 7-12 Boxplot
+```{r, message=FALSE, warning=FALSE}
+#cols <- c("#505160", "#68829E", "#AEBD38", "#598234")
+cols <- c("#2E2300", "#6E6702", "#C05805", "#DB9501")
+
+
+plt_1k_slope <- ggplot(dt_sl_7_12, 
+                       aes(x=condicion, y=slope, fill=condicion)) + 
+  stat_boxplot(geom = "errorbar",
+               width = 0.25) + 
+  geom_boxplot(alpha=0.8, outlier.colour=NA, width = 0.4)+
+   scale_fill_manual(values = cols,
+                    limits = c('WW', 'LL', 'WL', 'LW'), 
+                    labels = c('Wide', 'Low', 'Wide-Low', 'Low-Wide'),
+                    guide = guide_none()) + 
+  scale_y_continuous(limits=c(-.5, 1.84)) +
+  scale_x_discrete(limits = c('WW', 'LL', 'WL', 'LW')) +
+  labs(title="7-12 Slopes per condition", y='Slopes', x='Condition')+
+ # WW- LW
+  annotate("text", x = 2.5, y = 1.83,  label = "***", size = 4) +
+  annotate("segment", x = 0.7, xend = 4.2, y = 1.8, 
+            yend = 1.8, colour = "black", size=.2, alpha=1,) +
+  # LL - LW
+  annotate("text", x = 3, y = 1.73,  label = "***", size = 4) +
+  annotate("segment", x = 1.75, xend = 4.2, y = 1.7, 
+            yend = 1.7, colour = "black", size=.2, alpha=1,) +
+  # WW- WL
+  annotate("text", x = 1.9, y = 1.63,  label = "***", size = 4) +
+  annotate("segment", x = 0.7, xend = 3.2, y = 1.6, 
+            yend = 1.6, colour = "black", size=.2, alpha=1,) +
+  # LL - WL
+   annotate("text", x = 2.5, y = 1.53,  label = "***", size = 4) +
+   annotate("segment", x = 1.75, xend = 3.2, y = 1.5, 
+            yend = 1.5, colour = "black", size=.2, alpha=1,) +
+  #WW - LL
+   annotate("text", x = 1.45, y = 1.43,  label = "***", size = 4) +
+   annotate("segment", x = 0.7, xend = 2.2, y = 1.4, 
+            yend = 1.4, colour = "black", size=.2, alpha=1,) +
+  theme(axis.title.x = element_text(size = 9),
+        axis.title.y = element_text(size = 9),
+        plot.title = element_text(size = 10, hjust = 0.5))
+plt_1k_slope
+```
+## 1-6 Response-Distance with means and std per condition
+
+```{r, warning=FALSE, message=FALSE}
+data_prom <- dt_1_6 %>%
+  group_by(condicion, dist_log) %>%
+  summarise(dist_log,
+            resp_log,
+            prom_log = mean(resp_log), 
+            sd_log = sd(resp_log), 
+            std_log = std.error(resp_log))
+
+ggplot(data_prom,
+       aes(x=dist_log, y=prom_log,
+           color = condicion)) +
+  geom_point() +
+  geom_line(linewidth = 0.8) +
+  scale_y_continuous(limits=c(0, 1.45)) +
+  scale_color_manual(values = cols,
+                    limits = c('WW', 'LL', 'WL', 'LW'),
+                    labels = c('Wide', 'Low', 'Wide-Low', 'Low-Wide')) +
+  geom_errorbar(aes(ymin=prom_log-std_log,
+                    ymax=prom_log+std_log),
+                width = 0.02) +
+  # facet_grid(rows = vars(ID)) +
+  labs(title = "1-6 Average responses", x='Distance (log scale)', y='responses (log scale)') +
+  theme(axis.title.x = element_text(size = 9),
+        axis.title.y = element_text(size = 9),
+        plot.title = element_text(size = 10, hjust = 0.5))
+```
+## 7-12 Response-Distance with means and std per condition
+
+```{r, warning=FALSE, message=FALSE}
+data_prom <- dt_7_12 %>%
+  group_by(condicion, dist_log) %>%
+  summarise(dist_log,
+            resp_log,
+            prom_log = mean(resp_log), 
+            sd_log = sd(resp_log), 
+            std_log = std.error(resp_log))
+
+ggplot(data_prom,
+       aes(x=dist_log, y=prom_log,
+           color = condicion)) +
+  geom_point() +
+  geom_line(linewidth = 0.8) +
+  scale_y_continuous(limits=c(0, 1.45)) +
+  scale_color_manual(values = cols,
+                    limits = c('WW', 'LL', 'WL', 'LW'),
+                    labels = c('Wide', 'Low', 'Wide-Low', 'Low-Wide')) +
+  geom_errorbar(aes(ymin=prom_log-std_log,
+                    ymax=prom_log+std_log),
+                width = 0.02) +
+  # facet_grid(rows = vars(ID)) +
+  labs(title = "7-12 Average responses", x='Distance (log scale)', y='responses (log scale)') +
+  theme(axis.title.x = element_text(size = 9),
+        axis.title.y = element_text(size = 9),
+        plot.title = element_text(size = 10, hjust = 0.5))
+```
+
+## Regressions Plot
+
+### 1k Regressions
+
+```{r echo=FALSE, warning=FALSE, message=FALSE}
+ggplot(dt_1_6 %>% filter(nsub < 15), aes(x=dist_log, y=resp_log, color=condicion)) +
+    scale_color_manual(values = cols, labels = c('Wide', 'Low', 'Wide-Low', 'Low-Wide')) +
+  geom_smooth(method = lm, se = FALSE, size=0.5) +
+  facet_wrap(~nsub) +
+    theme(axis.title.x = element_blank(),
+        axis.title.y = element_text(size = 9),
+        plot.title = element_text(size = 10, hjust = 0.5)) +
+  theme_minimal()
+
+ggplot(dt_1_6 %>% filter(nsub > 15 & nsub < 31), aes(x=dist_log, y=resp_log, color=condicion)) +
+    scale_color_manual(values = cols, labels = c('Wide', 'Low', 'Wide-Low', 'Low-Wide')) +
+  geom_smooth(method = lm, se = FALSE, size=0.5) +
+  facet_wrap(~nsub) +
+    theme(axis.title.x = element_blank(),
+        axis.title.y = element_text(size = 9),
+        plot.title = element_text(size = 10, hjust = 0.5)) +
+  theme_minimal()
+
+ggplot(dt_1_6 %>% filter(nsub > 31 & nsub < 44), aes(x=dist_log, y=resp_log, color=condicion)) +
+    scale_color_manual(values = cols, labels = c('Wide', 'Low', 'Wide-Low', 'Low-Wide')) +
+  geom_smooth(method = lm, se = FALSE, size=0.5) +
+  facet_wrap(~nsub) +
+    theme(axis.title.x = element_blank(),
+        axis.title.y = element_text(size = 9),
+        plot.title = element_text(size = 10, hjust = 0.5)) +
+  theme_minimal()
+
+ggplot(dt_1_6 %>% filter(nsub > 44 & nsub < 59), aes(x=dist_log, y=resp_log, color=condicion)) +
+    scale_color_manual(values = cols, labels = c('Wide', 'Low', 'Wide-Low', 'Low-Wide')) +
+  geom_smooth(method = lm, se = FALSE, size=0.5) +
+  facet_wrap(~nsub) +
+    theme(axis.title.x = element_blank(),
+        axis.title.y = element_text(size = 9),
+        plot.title = element_text(size = 10, hjust = 0.5)) +
+  theme_minimal()
+
+ggplot(dt_1_6 %>% filter(nsub > 59 & nsub < 70), aes(x=dist_log, y=resp_log, color=condicion)) +
+    scale_color_manual(values = cols, labels = c('Wide', 'Low', 'Wide-Low', 'Low-Wide')) +
+  geom_smooth(method = lm, se = FALSE, size=0.5) +
+  facet_wrap(~nsub) +
+    theme(axis.title.x = element_blank(),
+        axis.title.y = element_text(size = 9),
+        plot.title = element_text(size = 10, hjust = 0.5)) +
+  theme_minimal()
+```
+
+### 4k Regressions
+
+```{r echo=FALSE, warning=FALSE, message=FALSE}
+ggplot(dt_7_12 %>% filter(nsub < 15), aes(x=dist_log, y=resp_log, color=condicion)) +
+    scale_color_manual(values = cols, labels = c('Wide', 'Low', 'Wide-Low', 'Low-Wide')) +
+  geom_smooth(method = lm, se = FALSE, size=0.5) +
+  facet_wrap(~nsub) +
+    theme(axis.title.x = element_blank(),
+        axis.title.y = element_text(size = 9),
+        plot.title = element_text(size = 10, hjust = 0.5)) +
+  theme_minimal()
+
+ggplot(dt_7_12 %>% filter(nsub > 15 & nsub < 31), aes(x=dist_log, y=resp_log, color=condicion)) +
+    scale_color_manual(values = cols, labels = c('Wide', 'Low', 'Wide-Low', 'Low-Wide')) +
+  geom_smooth(method = lm, se = FALSE, size=0.5) +
+  facet_wrap(~nsub) +
+    theme(axis.title.x = element_blank(),
+        axis.title.y = element_text(size = 9),
+        plot.title = element_text(size = 10, hjust = 0.5)) +
+  theme_minimal()
+
+ggplot(dt_7_12 %>% filter(nsub > 31 & nsub < 44), aes(x=dist_log, y=resp_log, color=condicion)) +
+    scale_color_manual(values = cols, labels = c('Wide', 'Low', 'Wide-Low', 'Low-Wide')) +
+  geom_smooth(method = lm, se = FALSE, size=0.5) +
+  facet_wrap(~nsub) +
+    theme(axis.title.x = element_blank(),
+        axis.title.y = element_text(size = 9),
+        plot.title = element_text(size = 10, hjust = 0.5)) +
+  theme_minimal()
+
+ggplot(dt_7_12 %>% filter(nsub > 44 & nsub < 59), aes(x=dist_log, y=resp_log, color=condicion)) +
+    scale_color_manual(values = cols, labels = c('Wide', 'Low', 'Wide-Low', 'Low-Wide')) +
+  geom_smooth(method = lm, se = FALSE, size=0.5) +
+  facet_wrap(~nsub) +
+    theme(axis.title.x = element_blank(),
+        axis.title.y = element_text(size = 9),
+        plot.title = element_text(size = 10, hjust = 0.5)) +
+  theme_minimal()
+
+ggplot(dt_7_12 %>% filter(nsub > 59 & nsub < 70), aes(x=dist_log, y=resp_log, color=condicion)) +
+    scale_color_manual(values = cols, labels = c('Wide', 'Low', 'Wide-Low', 'Low-Wide')) +
+  geom_smooth(method = lm, se = FALSE, size=0.5) +
+  facet_wrap(~nsub) +
+    theme(axis.title.x = element_blank(),
+        axis.title.y = element_text(size = 9),
+        plot.title = element_text(size = 10, hjust = 0.5)) +
+  theme_minimal()
+```
+
+##1-6 One way Anova with reapeated measures
+```{r 1k_2}
+lmer.1k <- lmer(slope ~ condicion + (1|nsub),
+    data = dt_sl_1_6)
+summary(lmer.1k)
+
+anova(lmer.1k)
+
+##partial eta sq
+effectsize::eta_squared(lmer.1k, partial = TRUE)
+#Rsq
+r.squaredGLMM(lmer.1k)  
+
+emmeans(lmer.1k, 
+        list(pairwise ~ condicion),
+        adjust="bonferroni")
+
+qqnorm(resid(lmer.1k))
+```
+
+## 7-12 One way Anova with reapeated measures
+```{r 1k_2}
+lmer.1k <- lmer(slope ~ condicion + (1|nsub),
+    data = dt_sl_7_12)
+summary(lmer.1k)
+
+anova(lmer.1k)
+
+##partial eta sq
+effectsize::eta_squared(lmer.1k, partial = TRUE)
+#Rsq
+r.squaredGLMM(lmer.1k)  
+
+emmeans(lmer.1k, 
+        list(pairwise ~ condicion),
+        adjust="bonferroni")
+
+qqnorm(resid(lmer.1k))
+```

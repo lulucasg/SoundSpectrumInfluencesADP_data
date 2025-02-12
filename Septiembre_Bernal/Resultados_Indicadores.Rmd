@@ -1,0 +1,240 @@
+---
+title: "Resultados e Indicadores"
+author: "Lucas Gonzalez - Damian Payo - Manuel Eguia - Ramiro Vergara"
+date: "2023-10-03"
+output: html_document
+  code_folding: "hide"
+    theme: paper
+    highlight: pygments
+    toc: true
+editor_options: 
+  markdown: 
+    wrap: 72
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+library(readr)
+library(dplyr)
+library(here)
+library(ggplot2)
+library(plotrix)
+library(segmented)
+library(Routliers)
+library(tidyverse)
+library(ggpubr)
+library(car)
+library(data.table)
+library(lme4)
+library(nlme)
+library(emmeans)
+library(sjstats)
+library(lmerTest)
+library(MuMIn)
+library(nortest)
+```
+
+## Formateo de datos
+
+Tomamos los 4 archivos .csv, los convertimos a formato tiddy para poder graficarlos.
+
+```{r, warning=FALSE, message=FALSE}
+
+#### Carga de Datos ####
+# Coeficientes Completos
+
+Dato_1 <- read_csv('./Indicadores/Centroide_Espectral.csv') %>%
+  pivot_longer(cols = c("wide", "low", "low-wide", "wide-low"),
+               names_to = "Condicion",
+               values_to = 'Centroide_Espectral')
+
+Dato_2 <- read_csv('./Indicadores/DR_Ratio.csv')%>% 
+  pivot_longer(cols = c("wide", "low", "low-wide", "wide-low"),
+               names_to = "Condicion",
+               values_to = 'DR_Ratio')
+
+Dato_3 <- read_csv('./Indicadores/Intensidad_Binaural.csv') %>% 
+  pivot_longer(cols = c("wide", "low", "low-wide", "wide-low"),
+               names_to = "Condicion",
+               values_to = 'Intensidad_Binaural')
+
+Dato_4 <- read_csv('./Indicadores/Varianza_Espectral.csv') %>% 
+  pivot_longer(cols = c("wide", "low", "low-wide", "wide-low"),
+               names_to = "Condicion",
+               values_to = 'Varianza_Espectral')
+
+df_list <- list(Dato_1, Dato_2, Dato_3, Dato_4)
+Indicadores <- df_list %>% reduce(merge, by=c('Distancia','Condicion'))
+
+Indicadores <- rename(Indicadores,
+                      Distance = Distancia,
+                      Condition = Condicion)
+
+rm(Dato_1, Dato_2, Dato_3, Dato_4, df_list)
+
+```
+
+
+```{r}
+Indicadores$dist_log <- log10(Indicadores$Distancia) 
+
+```
+
+## Graficamos
+
+
+```{r}
+
+#cols <- c("#2E2300", "#6E6702", "#C05805", "#DB9501")
+# "#890070" "#78582b"
+
+##############
+cols <- c("#00AF55", "#EF0000", "#DB9501","#890070")
+
+SC <- ggplot(Indicadores,
+             aes(x=Distance, y=Centroide_Espectral,
+                 color = Condition)) +
+  geom_point() +
+  geom_line(linewidth = 0.5, alpha = 0.8) +
+  scale_x_log10(breaks=c(1.5,2,2.5,3.3,4.3,5.6,7.2,9.4,12,15.5,20,26))+
+  scale_color_manual(values = cols,
+                    limits = c('wide', 'low', 'wide-low', 'low-wide'),
+                    labels = c('Wide', 'Low', 'Wide-Low', 'Low-Wide')) +
+  labs(title = "Spectral Centroid", x='Distance (m)', y='Frecuency (Hz)',
+       tag="C",
+       linetype = 'Cutoff Frequency') +
+  theme_light()+
+  theme(axis.title.x = element_text(size = 11), 
+        axis.title.y = element_text(size = 11), 
+        axis.text.x = element_text(size = 11),
+        axis.text.y = element_text(size = 11),
+        plot.title = element_text(size = 12, hjust = 0.5))
+
+
+DRR <- ggplot(Indicadores,
+             aes(x=Distance, y=DR_Ratio,
+                 color = Condition)) +
+  geom_point() +
+  scale_x_log10()+
+  geom_line(linewidth = 0.5, alpha = 0.8) +
+  scale_x_log10(breaks=c(1.5,2,2.5,3.3,4.3,5.6,7.2,9.4,12,15.5,20,26))+
+  scale_color_manual(values = cols,
+                    limits = c('wide', 'low', 'wide-low', 'low-wide'),
+                    labels = c('Wide', 'Low', 'Wide-Low', 'Low-Wide')) +
+  labs(title = "DR Ratio", x='Distance (m)', y='Intensity (dB)',
+       tag="B",
+       linetype = 'Cutoff Frequency') +
+  theme_light()+
+  theme(axis.title.x = element_text(size = 11),
+        axis.title.y = element_text(size = 11),
+        axis.text.x = element_text(size = 11),
+        axis.text.y = element_text(size = 11),
+        plot.title = element_text(size = 12, hjust = 0.5))
+
+BL <- ggplot(Indicadores,
+             aes(x=Distance, y=Intensidad_Binaural,
+                 color = Condition)) +
+  geom_point() +
+  geom_line(linewidth = 0.5, alpha = 0.8) +
+  scale_x_log10(breaks=c(1.5,2,2.5,3.3,4.3,5.6,7.2,9.4,12,15.5,20,26))+
+  scale_color_manual(values = cols,
+                    limits = c('wide', 'low', 'wide-low', 'low-wide'),
+                    labels = c('Wide', 'Low', 'Wide-Low', 'Low-Wide')) +
+  labs(title = "Binaural Level", x='Distance (m)', y='Intensity (dBFS)',
+       tag="A",
+       linetype = 'Cutoff Frequency') +
+  theme_light()+
+  theme(axis.title.x = element_text(size = 11),
+        axis.title.y = element_text(size = 11),
+        axis.text.x = element_text(size = 11),
+        axis.text.y = element_text(size = 11),
+        plot.title = element_text(size = 12, hjust = 0.5))
+
+
+## INDIVIDUAL LEGENDS ####################################
+VE_1 <- ggplot(Indicadores,
+             aes(x=Distance, y=Varianza_Espectral,
+                 color = Condition#, linetype = Frequency
+                 )) +
+  geom_point() +
+  geom_line(linewidth = 0.5, alpha = 0.8) +
+  scale_x_log10(breaks=c(1.5,2,2.5,3.3,4.3,5.6,7.2,9.4,12,15.5,20,26))+
+  scale_color_manual(values = cols,
+                     limits = c('wide', 'low', 'wide-low', 'low-wide'),
+                    labels = c('Wide', 'Low', 'Wide-Low', 'Low-Wide')) +
+  labs(title = "Spectral Variance", x='Distance (m)', y='Frecuency (Hz)') +
+  theme_light()+
+  theme(axis.title.x = element_text(size = 11),
+        axis.title.y = element_text(size = 11),
+        plot.title = element_text(size = 12, hjust = 0.5),
+        legend.text = element_text(size=12),
+        legend.title = element_text(size=12),
+        legend.background = element_blank(),
+        legend.box.background = element_rect(colour = "black")
+        )
+#########################
+
+comleg_condition <- as_ggplot(get_legend(VE_1))+
+  theme(plot.margin = margin(0,0,0,0, "cm"))
+
+legends <- ggpubr::ggarrange(comleg_condition)
+plot <- ggpubr::ggarrange(BL, DRR, SC, legends,
+                          common.legend = TRUE, legend = "none")
+
+annotate_figure(plot, top = text_grob("Acoustic Indexes", 
+                face = "bold", size = 14))
+ggsave(plot,
+  file = "Indicadores_Experimento_2.eps",
+  device = cairo_ps,
+  width = 3500,
+  height = 1750,
+  unit = "px",
+  dpi = 300)
+```
+
+
+# Armado de tibble con sujetos + indicadores
+
+Requiere correr "Analisis_Potencia.Rmd" en el mismo environment.
+
+## Corregimos
+```{r}
+# Igualo nombres de columna
+Indicadores <- rename(Indicadores,
+                      distancia = Distancia,
+                      condicion = Condicion)
+
+Indicadores$condicion[Indicadores$condicion=="wide"] <- "WW"
+Indicadores$condicion[Indicadores$condicion=="low"] <- "LL"
+Indicadores$condicion[Indicadores$condicion=="low-wide"] <- "LW"
+Indicadores$condicion[Indicadores$condicion=="wide-low"] <- "WL"
+
+data_e_indicadores <- merge(x=Indicadores,y=data_clean,
+                             by=c("condicion","distancia","dist_log"))
+```
+
+# Análisis Centroide_Espectral * DR_Ratio *
+  Intensidad_Binaural * Varianza_Espectral
+
+```{r}
+lmer.indicadores <- lmer(resp_log ~ dist_log * condicion + 
+                           (Varianza_Espectral:condicion) + (1|nsub),
+    data = data_e_indicadores)
+
+summary(lmer.indicadores)
+
+anova(lmer.indicadores)
+```
+```{r}
+##partial eta sq
+#effectsize::eta_squared(lmer.indicadores, partial = TRUE)
+#Rsq
+#r.squaredGLMM(lmer.indicadores)  
+
+emmeans(lmer.indicadores, 
+        list(pairwise ~ condicion),
+        adjust="bonferroni")
+
+qqnorm(resid(lmer.indicadores))
+```

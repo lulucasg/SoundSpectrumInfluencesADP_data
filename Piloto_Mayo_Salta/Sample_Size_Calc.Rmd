@@ -1,0 +1,200 @@
+---
+title: "Sample_Size_Calc"
+output: html_document
+date: "2023-07-28"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+##
+
+```{r }
+# library(readr)
+library(data.table)
+library(dplyr)
+# library(here)
+# library(ggplot2)
+# library(plotrix)
+# library(segmented)
+library(Routliers)
+library(tidyverse)
+# library(ggpubr)
+# library(car)
+
+# library(lme4)
+# library(nlme)
+# library(emmeans)
+# library(sjstats)
+# library(lmerTest)
+# library(MuMIn)
+# library(nortest)
+```
+
+
+##
+```{r}
+dir <- "./Data"
+data <- 
+    list.files(path=dir, pattern = "*.csv",full.names = TRUE) %>% 
+    map_df(~fread(.) %>% mutate(trial_Order = row_number()))
+
+rm(dir)
+```
+
+
+```{r}
+# Corregimos la columna de condicion con una etiqueta mas legible
+# WW -> Sin filtro
+# LL -> Filtro pasa-bajo
+# HH -> Filtro pasa-alto
+# HL
+# LH
+data$condicion[data$condicion==0] <- "WW"
+data$condicion[data$condicion==1] <- "LL"
+data$condicion[data$condicion==2] <- "HH"
+data$condicion[data$condicion==3] <- "HL"
+data$condicion[data$condicion==4] <- "LH"
+data$distancia <- log(data$distancia) 
+data$respuesta <- log(data$respuesta)
+
+```
+## Eliminamos al sujeto 19
+
+```{r, message=FALSE,error=FALSE,warning=FALSE,include=FALSE}
+data <- data[!(data$nsub==19), ]
+
+```
+
+```{r}
+data_clean <- tibble()
+Nsubs <- unique(data$nsub)
+Conds <- unique(data$condicion)
+for (N in Nsubs){
+  for (C in Conds){
+  data_N <- data %>% filter(nsub==N, condicion==C)
+  #print(N)
+  outliers_N <- outliers_mcd(x=cbind(data_N$distancia,data_N$respuesta))
+  outliers_list <- outliers_N$outliers_val
+  
+    # Eliminar outliers multivariados!
+  outliers_index <-  which(data_N$distancia%in%outliers_list$X1 &
+                           data_N$respuesta%in%outliers_list$X2)
+
+   if (length(outliers_index)!=0){
+     data_N <- data_N[-outliers_index, ]
+    }
+  data_clean <- rbind(data_clean,data_N)
+  }
+}
+rm(data_N,outliers_list,outliers_N,outliers_index,C,Conds,N,Nsubs)
+
+```
+## Pendientes
+
+```{r include=FALSE}
+data_slopes <- tibble()
+sresids <- vector()
+
+Nsubs <- unique(data_clean$nsub)
+Conds <- unique(data_clean$condicion)
+for (N in Nsubs){
+  for (C in Conds){
+  data_N <- data_clean %>% filter(nsub==N, condicion==C)
+  linear.model <- lm(respuesta~distancia,data_N)
+  data_N$slope <- linear.model$coefficients[2]
+  data_N$res <- as.vector(rstandard(linear.model))
+  data_slopes <- rbind(data_slopes,data_N)
+  sresids <- append(sresids, as.vector(rstandard(linear.model)))
+  }
+}
+rm(data_N,C,Conds,N,Nsubs, linear.model)
+
+data_clean <- data_slopes
+data_slopes <- data_slopes %>%
+  summarise(nsub, condicion, slope) %>%
+  unique()
+```
+
+## Outliers por Pendiente
+
+```{r}
+slope_WW <- data_slopes %>% filter(condicion=="WW")
+slope_LL <- data_slopes %>% filter(condicion=="LL")
+slope_HH <- data_slopes %>% filter(condicion=="HH")
+slope_HL <- data_slopes %>% filter(condicion=="HL")
+slope_LH <- data_slopes %>% filter(condicion=="LH")
+
+
+# Detecto outliers por condicion
+outliers <-outliers_mad(slope_WW$slope)
+#outliers$limits[2]
+slope_WW<- slope_WW[slope_WW$slope<outliers$limits[2],]
+
+outliers <-outliers_mad(slope_LL$slope)
+#outliers$limits[2]
+slope_LL<- slope_LL[slope_LL$slope<outliers$limits[2],]
+
+outliers <-outliers_mad(slope_HH$slope)
+#outliers$limits[2]
+slope_HH<- slope_HH[slope_HH$slope<outliers$limits[2],]
+
+outliers <-outliers_mad(slope_HL$slope)
+#outliers$limits[2]
+slope_HL<- slope_HL[slope_HL$slope<outliers$limits[2],]
+
+outliers <-outliers_mad(slope_LH$slope)
+#outliers$limits[2]
+slope_LH<- slope_LH[slope_LH$slope<outliers$limits[2],]
+
+# unifico
+data_slopes_clean <- (rbind(slope_WW,slope_LL,slope_HH,
+                            slope_HL,slope_LH))
+
+count_conditions <- data_slopes_clean %>%
+  group_by(nsub) %>%
+  summarise(n = n())
+drops <- count_conditions %>% subset(n!=5)
+data_slopes_clean <- data_slopes_clean[!(data_slopes_clean$nsub%in%
+                                                 drops$nsub), ]
+
+rm(slope_1k_HH, slope_1k_LL,slope_1k_WW,
+   slope_4k_HH,slope_4k_LL,slope_4k_WW)
+rm(outliers, count_conditions)
+```
+## Calculo del Effect Size y Sample Size
+
+```{r}
+library(pwr)
+
+calculate_cohens_d <- function(group1, group2) {
+  mean_diff <- mean(group1) - mean(group2)
+  pooled_sd <- sqrt(((sd(group1) ^ 2 + sd(group2) ^ 2) / 2))
+  cohend <- mean_diff / pooled_sd
+  return(cohend)
+}
+
+cohend <- calculate_cohens_d(
+  data_slopes_clean[data_slopes_clean$condicion=="WW",]$slope,
+  data_slopes_clean[data_slopes_clean$condicion=="HL",]$slope)
+
+alpha <- 0.05
+power <- 0.8
+#effect_size <- abs(cohend)
+effect_size <- 0.5
+
+sz <- pwr.t.test(d = effect_size, sig.level = alpha, power = power)
+sz
+```
+
+## Boxplot
+
+```{r}
+
+ggplot(data=data_slopes_clean,aes(x=condicion,y=slope, color=condicion)) +
+  geom_boxplot()+
+  theme_minimal()
+
+
+```
