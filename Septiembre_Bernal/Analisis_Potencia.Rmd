@@ -317,38 +317,38 @@ plt_exp2_slope <- ggplot(data_slopes_clean,
                    ) +
   labs(title="Slopes per condition", y='Slopes', x='Condition')+
  # WW- LW
-  annotate("text", x = 2.5, y = 2.18,  label = "***", size = 4) +
-  annotate("segment", x = 0.7, xend = 4.2, y = 2.16, 
+  annotate("text", x = 2.5, y = 2.18,  label = "***", size = 5) +
+  annotate("segment", x = 0.9, xend = 4.1, y = 2.16, 
             yend = 2.16, colour = "black", size=.2, alpha=1,) +
   # LL - LW
-  annotate("text", x = 3, y = 2.08,  label = "***", size = 4) +
-  annotate("segment", x = 1.75, xend = 4.2, y = 2.06, 
+  annotate("text", x = 3, y = 2.08,  label = "***", size = 5) +
+  annotate("segment", x = 1.9, xend = 4.1, y = 2.06, 
             yend = 2.06, colour = "black", size=.2, alpha=1,) +
   # WW- WL
-  annotate("text", x = 1.9, y = 1.98,  label = "***", size = 4) +
-  annotate("segment", x = 0.7, xend = 3.2, y = 1.96, 
+  annotate("text", x = 2.0, y = 1.98,  label = "***", size = 5) +
+  annotate("segment", x = 0.9, xend = 3.1, y = 1.96, 
             yend = 1.96, colour = "black", size=.2, alpha=1,) +
   # LL - WL
-   annotate("text", x = 2.5, y = 1.88,  label = "***", size = 4) +
-   annotate("segment", x = 1.75, xend = 3.2, y = 1.86, 
+   annotate("text", x = 2.5, y = 1.88,  label = "***", size = 5) +
+   annotate("segment", x = 1.9, xend = 3.1, y = 1.86, 
             yend = 1.86, colour = "black", size=.2, alpha=1,) +
   #WW - LL
-   annotate("text", x = 1.45, y = 1.78,  label = "***", size = 4) +
-   annotate("segment", x = 0.7, xend = 2.2, y = 1.76, 
+   annotate("text", x = 1.5, y = 1.78,  label = "***", size = 5) +
+   annotate("segment", x = 0.9, xend = 2.1, y = 1.76, 
             yend = 1.76, colour = "black", size=.2, alpha=1,) +
-  theme_light()+
-  theme(axis.title.x = element_text(size = 15),
-        axis.text.x = element_text(size = 14),
-        axis.title.y = element_text(size = 15),
+  theme_bw()+
+  theme(axis.title.x = element_text(size = 12),
+        axis.text.x = element_text(size = 12),
+        axis.title.y = element_text(size = 12),
         axis.text.y = element_text(size = 12),
-        plot.title = element_text(size = 16, hjust = 0.5))
+        plot.title = element_text(size = 12, hjust = 0.5))
 plt_exp2_slope
 
 ggsave(plot = last_plot(),
   file = "boxplot_exp2.eps",
   device = cairo_ps,
-  width = 2500,
-  height = 2000,
+  width = 1320,
+  height = 1100,
   unit = "px",
   dpi = 300)
 ```
@@ -438,22 +438,23 @@ ggplot(data_prom,
   geom_errorbar(aes(ymin=prom_log-std_log,
                     ymax=prom_log+std_log),
                 width = 0.02,alpha = 0.8) +
-
   # facet_grid(rows = vars(ID)) +
-  labs(title = "Average Responses", x='Distance (log scale)', y='Responses (log scale)', color ="Condition") +
-  theme_light()+
-  theme(axis.title.x = element_text(size = 14),
-        axis.title.y = element_text(size = 14),
-        plot.title = element_text(size = 15, hjust = 0.5),
-        legend.position = "bottom"
-        #legend.background = element_blank(),
-        #legend.box.background = element_rect(colour = "black")
+  labs(title = "Average Responses", x='Distance [log(m)]', y='Responses [log(m)]', color ="Condition") +
+  theme_bw()+
+  theme(axis.title.x = element_text(size = 12),
+        axis.title.y = element_text(size = 12),
+        axis.text.x = element_text(size = 12),
+        axis.text.y = element_text(size = 12),
+        legend.text = element_text(size=12),
+        legend.title = element_text(size=12),
+        plot.title = element_text(size = 12, hjust = 0.5)
         )
+
 ggsave(plot = last_plot(),
-  file = "plt_dist_curves_exp2.png",
-  #device = cairo_ps,
-  width = 1750,
-  height = 1750,
+  file = "dist_curves_exp2.eps",
+  device = cairo_ps,
+  width = 1800,
+  height = 1200,
   unit = "px",
   dpi = 300)
 ```

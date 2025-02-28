@@ -44,22 +44,23 @@ Tomamos los 4 archivos .csv, los convertimos a formato tiddy para poder graficar
 #### Carga de Datos ####
 # Coeficientes Completos
 
-Dato_1 <- read_csv('./Indicadores/Centroide_Espectral.csv') %>%
+Dato_1 <- read_csv('./Indicadores/Exp2_SC_tot.csv') %>%
   pivot_longer(cols = c("wide", "low", "low-wide", "wide-low"),
                names_to = "Condicion",
                values_to = 'Centroide_Espectral')
 
-Dato_2 <- read_csv('./Indicadores/DR_Ratio.csv')%>% 
+Dato_2 <- read_csv('./Indicadores/Exp2_DRR.csv')%>% 
   pivot_longer(cols = c("wide", "low", "low-wide", "wide-low"),
                names_to = "Condicion",
                values_to = 'DR_Ratio')
 
-Dato_3 <- read_csv('./Indicadores/Intensidad_Binaural.csv') %>% 
+Dato_3 <- read_csv('./Indicadores/Exp2_BL_tot.csv') %>% 
   pivot_longer(cols = c("wide", "low", "low-wide", "wide-low"),
                names_to = "Condicion",
                values_to = 'Intensidad_Binaural')
 
-Dato_4 <- read_csv('./Indicadores/Varianza_Espectral.csv') %>% 
+# Solo par refes
+Dato_4 <- read_csv('./Indicadores/Exp2_SC_dir.csv') %>% 
   pivot_longer(cols = c("wide", "low", "low-wide", "wide-low"),
                names_to = "Condicion",
                values_to = 'Varianza_Espectral')
@@ -93,20 +94,21 @@ Indicadores$dist_log <- log10(Indicadores$Distancia)
 cols <- c("#00AF55", "#EF0000", "#DB9501","#890070")
 
 SC <- ggplot(Indicadores,
-             aes(x=Distance, y=Centroide_Espectral,
+             aes(x=Distance, y=Centroide_Espectral/1000,
                  color = Condition)) +
   geom_point() +
   geom_line(linewidth = 0.5, alpha = 0.8) +
-  scale_x_log10(breaks=c(1.5,2,2.5,3.3,4.3,5.6,7.2,9.4,12,15.5,20,26))+
+  scale_x_log10(breaks=c(1.5,2,2.5,3.3,4.3,5.6,7.2,9.4,12,15.5,20,26),
+                labels=c(1.5,2,2.5,3.3,4.3,5.6,7.2,9.4,12,15.5,20,26))+
   scale_color_manual(values = cols,
                     limits = c('wide', 'low', 'wide-low', 'low-wide'),
                     labels = c('Wide', 'Low', 'Wide-Low', 'Low-Wide')) +
-  labs(title = "Spectral Centroid", x='Distance (m)', y='Frecuency (Hz)',
-       tag="C",
+  labs(title = "Spectral Centroid (SC)", x='Distance [log(m)]', y='Frecuency (kHz)',
+       tag="(c)",
        linetype = 'Cutoff Frequency') +
-  theme_light()+
-  theme(axis.title.x = element_text(size = 11), 
-        axis.title.y = element_text(size = 11), 
+  theme_bw()+
+  theme(axis.title.x = element_text(size = 12), 
+        axis.title.y = element_text(size = 12), 
         axis.text.x = element_text(size = 11),
         axis.text.y = element_text(size = 11),
         plot.title = element_text(size = 12, hjust = 0.5))
@@ -118,16 +120,17 @@ DRR <- ggplot(Indicadores,
   geom_point() +
   scale_x_log10()+
   geom_line(linewidth = 0.5, alpha = 0.8) +
-  scale_x_log10(breaks=c(1.5,2,2.5,3.3,4.3,5.6,7.2,9.4,12,15.5,20,26))+
+  scale_x_log10(breaks=c(1.5,2,2.5,3.3,4.3,5.6,7.2,9.4,12,15.5,20,26),
+                labels=c(1.5,2,2.5,3.3,4.3,5.6,7.2,9.4,12,15.5,20,26))+
   scale_color_manual(values = cols,
                     limits = c('wide', 'low', 'wide-low', 'low-wide'),
                     labels = c('Wide', 'Low', 'Wide-Low', 'Low-Wide')) +
-  labs(title = "DR Ratio", x='Distance (m)', y='Intensity (dB)',
-       tag="B",
+  labs(title = "Direct-to-Reverberant Energy Ratio (DRR)", x='Distance [log(m)]', y='Intensity (dB)',
+       tag="(b)",
        linetype = 'Cutoff Frequency') +
-  theme_light()+
-  theme(axis.title.x = element_text(size = 11),
-        axis.title.y = element_text(size = 11),
+  theme_bw()+
+  theme(axis.title.x = element_text(size = 12),
+        axis.title.y = element_text(size = 12),
         axis.text.x = element_text(size = 11),
         axis.text.y = element_text(size = 11),
         plot.title = element_text(size = 12, hjust = 0.5))
@@ -137,16 +140,17 @@ BL <- ggplot(Indicadores,
                  color = Condition)) +
   geom_point() +
   geom_line(linewidth = 0.5, alpha = 0.8) +
-  scale_x_log10(breaks=c(1.5,2,2.5,3.3,4.3,5.6,7.2,9.4,12,15.5,20,26))+
+  scale_x_log10(breaks=c(1.5,2,2.5,3.3,4.3,5.6,7.2,9.4,12,15.5,20,26),
+                labels=c(1.5,2,2.5,3.3,4.3,5.6,7.2,9.4,12,15.5,20,26))+
   scale_color_manual(values = cols,
                     limits = c('wide', 'low', 'wide-low', 'low-wide'),
                     labels = c('Wide', 'Low', 'Wide-Low', 'Low-Wide')) +
-  labs(title = "Binaural Level", x='Distance (m)', y='Intensity (dBFS)',
-       tag="A",
+  labs(title = "Binaural Level (BL)", x='Distance [log(m)]', y='Intensity (dBFS)',
+       tag="(a)",
        linetype = 'Cutoff Frequency') +
-  theme_light()+
-  theme(axis.title.x = element_text(size = 11),
-        axis.title.y = element_text(size = 11),
+  theme_bw()+
+  theme(axis.title.x = element_text(size = 12),
+        axis.title.y = element_text(size = 12),
         axis.text.x = element_text(size = 11),
         axis.text.y = element_text(size = 11),
         plot.title = element_text(size = 12, hjust = 0.5))
@@ -159,19 +163,20 @@ VE_1 <- ggplot(Indicadores,
                  )) +
   geom_point() +
   geom_line(linewidth = 0.5, alpha = 0.8) +
-  scale_x_log10(breaks=c(1.5,2,2.5,3.3,4.3,5.6,7.2,9.4,12,15.5,20,26))+
+  scale_x_log10(breaks=c(1.5,2,2.5,3.3,4.3,5.6,7.2,9.4,12,15.5,20,26),
+                labels=c(1.5,2,2.5,3.3,4.3,5.6,7.2,9.4,12,15.5,20,26))+
   scale_color_manual(values = cols,
                      limits = c('wide', 'low', 'wide-low', 'low-wide'),
                     labels = c('Wide', 'Low', 'Wide-Low', 'Low-Wide')) +
-  labs(title = "Spectral Variance", x='Distance (m)', y='Frecuency (Hz)') +
-  theme_light()+
+  labs(title = "Spectral Variance", x='Distance [log(m)]', y='Frecuency (Hz)') +
+  theme_bw()+
   theme(axis.title.x = element_text(size = 11),
         axis.title.y = element_text(size = 11),
         plot.title = element_text(size = 12, hjust = 0.5),
         legend.text = element_text(size=12),
         legend.title = element_text(size=12),
-        legend.background = element_blank(),
-        legend.box.background = element_rect(colour = "black")
+        legend.background = element_blank()#,
+        #legend.box.background = element_rect(colour = "black")
         )
 #########################
 
@@ -187,8 +192,8 @@ annotate_figure(plot, top = text_grob("Acoustic Indexes",
 ggsave(plot,
   file = "Indicadores_Experimento_2.eps",
   device = cairo_ps,
-  width = 3500,
-  height = 1750,
+  width = 2650,
+  height = 1400,
   unit = "px",
   dpi = 300)
 ```

@@ -325,19 +325,19 @@ plt_1k_slope <- ggplot(data_slopes_clean %>%
   scale_x_discrete(limits = c('WW', 'LL', 'HH'),
                    labels = c('Wide', 'Low', 'High')) +
   scale_y_continuous(limits=c(0,2)) +
-  labs(title="Cutoff Frequency: 1kHz", y='Slopes', x='Condition',tag ="A")+
-  annotate("text", x = 1.5, y = 1.6,  label = "***", size = 4) +
-  annotate("segment", x = 0.7, xend = 2.2, y = 1.55, 
+  labs(title="Cutoff Frequency: 1 kHz", y='Slopes', x='Condition',tag ="(a)")+
+  annotate("text", x = 1.5, y = 1.6,  label = "***", size = 5) +
+  annotate("segment", x = 0.9, xend = 2.1, y = 1.55, 
            yend = 1.55, colour = "black", size=.3, alpha=1,) +
-  annotate("text", x = 2.5, y = 1.8,  label = "***", size = 4) +
-  annotate("segment", x = 1.75, xend = 3.2, y = 1.75, 
+  annotate("text", x = 2.5, y = 1.8,  label = "***", size = 5) +
+  annotate("segment", x = 1.9, xend = 3.1, y = 1.75, 
            yend = 1.75, colour = "black", size=.3, alpha=1,) +
-  theme_light()+
-  theme(axis.title.x = element_text(size = 15),
-        axis.text.x = element_text(size = 14),
-        axis.title.y = element_text(size = 15),
+  theme_bw()+
+  theme(axis.title.x = element_text(size = 12),
+        axis.text.x = element_text(size = 12),
+        axis.title.y = element_text(size = 12),
         axis.text.y = element_text(size = 12),
-        plot.title = element_text(size = 16, hjust = 0.5))
+        plot.title = element_text(size = 12, hjust = 0.5))
 
 
 plt_4k_slope <- ggplot(data_slopes_clean %>% 
@@ -353,26 +353,26 @@ plt_4k_slope <- ggplot(data_slopes_clean %>%
   scale_x_discrete(limits = c('WW', 'LL', 'HH'),
                    labels = c('Wide', 'Low', 'High')) +
   scale_y_continuous(limits=c(0,2)) +
-  labs(title="Cutoff Frequency: 4kHz", y = '', x='Condition', tag ="B")+
-  annotate("text", x = 1.5, y = 1.6,  label = "*", size = 4) +
-  annotate("segment", x = 0.7, xend = 2.2, y = 1.55, 
+  labs(title="Cutoff Frequency: 4 kHz", y = '', x='Condition', tag ="(b)")+
+  annotate("text", x = 1.5, y = 1.6,  label = "*", size = 5) +
+  annotate("segment", x = 0.9, xend = 2.1, y = 1.55, 
            yend = 1.55, colour = "black", size=.3, alpha=1,) +
-  annotate("text", x = 2.5, y = 1.8,  label = "*", size = 4) +
-  annotate("segment", x = 1.75, xend = 3.2, y = 1.75, 
+  annotate("text", x = 2.5, y = 1.8,  label = "*", size = 5) +
+  annotate("segment", x = 1.9, xend = 3.1, y = 1.75, 
            yend = 1.75, colour = "black", size=.3, alpha=1,) +
-  theme_light()+
-  theme(axis.title.x = element_text(size = 15),
-        axis.text.x = element_text(size = 14),
-        axis.title.y = element_text(size = 15),
+  theme_bw()+
+  theme(axis.title.x = element_text(size = 12),
+        axis.text.x = element_text(size = 12),
+        axis.title.y = element_text(size = 12),
         axis.text.y = element_text(size = 12),
-        plot.title = element_text(size = 16, hjust = 0.5))
+        plot.title = element_text(size = 12, hjust = 0.5))
 
 ggarrange(plt_1k_slope,plt_4k_slope, common.legend = TRUE)
 ggsave(plot = last_plot(),
-  file = "boxplot_1k4k.png",
-  #device = cairo_ps,
-  width = 3500,
-  height = 2000,
+  file = "boxplot_1k4k.eps",
+  device = cairo_ps,
+  width = 2000,
+  height = 1100,
   unit = "px",
   dpi = 300)
 ```
@@ -428,11 +428,15 @@ dist_curves_1k <- ggplot(data_prom,
                     ymax=prom_log+std_log),
                 width = 0.02,alpha = 0.8) +
   # facet_grid(rows = vars(ID)) +
-  labs(title = "Cutoff Frequency: 1kHz", x='Distance (log scale)', y='Responses (log scale)',
-       color ="Condition", tag="A") +
-  theme_light()+
-  theme(axis.title.x = element_text(size = 11),
-        axis.title.y = element_text(size = 11),
+  labs(title = "Cutoff Frequency: 1 kHz", x='Distance [log(m)]', y='Responses [log(m)]',
+       color ="Condition", tag="(a)") +
+  theme_bw()+
+  theme(axis.title.x = element_text(size = 12),
+        axis.title.y = element_text(size = 12),
+        axis.text.x = element_text(size = 11),
+        axis.text.y = element_text(size = 11),
+        legend.text = element_text(size=12),
+        legend.title = element_text(size=12),
         plot.title = element_text(size = 12, hjust = 0.5))
 
 dist_curves_1k
@@ -468,19 +472,23 @@ dist_curves_4k <- ggplot(data_prom,
                     ymax=prom_log+std_log),
                 width = 0.02,alpha = 0.8) +
   # facet_grid(rows = vars(ID)) +
-  labs(title = "Cutoff Frequency: 4kHz", x='Distance (log scale)', y="",
-       color ="Condition", tag="B") +
-  theme_light()+
-  theme(axis.title.x = element_text(size = 11),
-        axis.title.y = element_text(size = 11),
+  labs(title = "Cutoff Frequency: 4 kHz", x='Distance [log(m)]', y="",
+       color ="Condition", tag="(b)") +
+  theme_bw()+
+  theme(axis.title.x = element_text(size = 12),
+        axis.title.y = element_text(size = 12),
+        axis.text.x = element_text(size = 11),
+        axis.text.y = element_text(size = 11),
+        legend.text = element_text(size=12),
+        legend.title = element_text(size=12),
         plot.title = element_text(size = 12, hjust = 0.5))
 
 ggarrange(dist_curves_1k,dist_curves_4k, common.legend = TRUE,legend="bottom")
 ggsave(plot = last_plot(),
   file = "plt_dist_curves_1kvs4k.eps",
   device = cairo_ps,
-  width = 3500,
-  height = 1750,
+  width = 2600,
+  height = 1400,
   unit = "px",
   dpi = 300)
 ```
@@ -507,11 +515,18 @@ effectsize::eta_squared(lmer.1k, partial = TRUE)
 #Rsq
 r.squaredGLMM(lmer.1k)  
 
-emmeans(lmer.1k, 
+table_1k <- emmeans(lmer.1k, 
         list(pairwise ~ condicion),
         adjust="bonferroni")
 
 qqnorm(resid(lmer.1k))
+```
+To table
+```{r}
+library(knitr)
+options(knitr.table.format = "latex")
+as.data.frame(summary(table_1k))
+
 ```
 
 ### One way Anova with reapeated measures LMER for Freq=4k
