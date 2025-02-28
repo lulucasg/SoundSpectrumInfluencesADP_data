@@ -1,0 +1,11 @@
+"0","Indicadores_2 <- Indicadores %>% "
+"0","  pivot_longer(cols = c(""Centroide_Espectral"", ""DR_Ratio"", ""Intensidad_Binaural""),"
+"0","               names_to = ""Spectral_Cue"","
+"0","               values_to = 'Value')"
+"1","[1m[33mError[39m in `pivot_longer()`:[22m
+[33m![39m Can't subset columns that don't exist.
+[31m✖[39m Column `Centroide_Espectral` doesn't exist.
+Backtrace:
+[90m 1. [39mIndicadores %>% ...
+[90m 3. [39m[1m[94mtidyr:::pivot_longer.data.frame([39m[22m...[1m[94m)[39m[22m
+"

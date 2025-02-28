@@ -240,7 +240,7 @@ ggpubr::ggarrange(BL + theme(axis.text.x = element_blank(),
                      axis.ticks.x = element_blank(),
                      axis.title.x = element_blank() ),
           SC,
-          align = "v",
+          align = "h",
           common.legend = TRUE,
           legend = "right",
           ncol = 1)

@@ -1,27 +1,27 @@
 {
-    "id": "D202E74F",
+    "id": "6309AA4F",
     "path": "~/GitHub/Tanque_ExpDistancia/Junio_Bernal/Resultados_Indicadores_Junio.Rmd",
     "project_path": "Resultados_Indicadores_Junio.Rmd",
     "type": "r_markdown",
-    "hash": "2086578942",
+    "hash": "0",
     "contents": "",
     "dirty": false,
-    "created": 1740584944801.0,
+    "created": 1740756611572.0,
     "source_on_save": false,
     "relative_order": 1,
     "properties": {
         "source_window_id": "",
         "Source": "Source",
         "last_setup_crc32": "233bc9b5ab09827",
-        "cursorPosition": "245,19",
-        "scrollLine": "251"
+        "cursorPosition": "174,0",
+        "scrollLine": "165"
     },
     "folds": "",
-    "lastKnownWriteTime": 1740753362,
+    "lastKnownWriteTime": 1740782232,
     "encoding": "UTF-8",
     "collab_server": "",
     "source_window": "",
-    "last_content_update": 1740753363044,
+    "last_content_update": 1740782233199,
     "read_only": false,
     "read_only_alternatives": []
 }
