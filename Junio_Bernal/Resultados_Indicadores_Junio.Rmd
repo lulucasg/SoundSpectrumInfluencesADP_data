@@ -134,7 +134,7 @@ Indicadores_2 <- Indicadores %>%
 ```
 
 ```{r}
-fsz = 42
+fsz = 12.5
 
 plot <- ggplot(Indicadores_2, aes(x = Distance, y = Value,
                           color = Condition, linetype = Frequency)) +
@@ -170,8 +170,8 @@ plot <- ggplot(Indicadores_2, aes(x = Distance, y = Value,
         #panel.spacing = unit(1, "lines"))
 
 ggsave(plot,
-  file = "Figure2_1.png",
-  #device = cairo_ps,
+  file = "Figure2.eps",
+  device = cairo_ps,
   width = 1800,
   height = 2000,
   unit = "px",

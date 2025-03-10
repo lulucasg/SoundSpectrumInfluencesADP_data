@@ -1,0 +1,4 @@
+"0",""
+"0",""
+"0","ggplot(data_1k_DR%>%filter(distancia<=5.0), aes(x=as.factor(distancia),y=resp_log, color=condicion))+"
+"0","  geom_jitter()"

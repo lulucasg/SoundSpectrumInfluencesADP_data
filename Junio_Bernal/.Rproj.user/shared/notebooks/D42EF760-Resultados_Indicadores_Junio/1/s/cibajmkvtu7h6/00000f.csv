@@ -1,11 +1,4 @@
 "0","library(showtext)"
-"2","Warning: package ‘showtext’ was built under R version 4.3.3"
-"2","Loading required package: sysfonts
-"
-"2","Warning: package ‘sysfonts’ was built under R version 4.3.3"
-"2","Loading required package: showtextdb
-"
-"2","Warning: package ‘showtextdb’ was built under R version 4.3.3"
 "0","font_add(family = ""Times"", regular = ""TIMES.ttf"")"
 "0","showtext_auto()"
 "0",""

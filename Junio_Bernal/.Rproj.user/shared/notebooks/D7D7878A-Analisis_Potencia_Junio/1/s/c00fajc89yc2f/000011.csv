@@ -1,0 +1,7 @@
+"0","ggsave(plot = last_plot(),"
+"0","  file = ""boxplot_1k4k.eps"","
+"0","  device = cairo_ps,"
+"0","  width = 2000,"
+"0","  height = 1100,"
+"0","  unit = ""px"","
+"0","  dpi = 300)"

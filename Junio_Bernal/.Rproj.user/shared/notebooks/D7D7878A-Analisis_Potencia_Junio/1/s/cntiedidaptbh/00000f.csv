@@ -1,0 +1,6 @@
+"0","normality_test <- data_clean %>%"
+"0","  group_by(nsub, condicion) %>%"
+"0","  summarise(statistic = shapiro.test(res)$statistic,"
+"0","            p.value = shapiro.test(res)$p.value)"
+"0",""
+"0","normality_test%>%subset(p.value<0.05)"

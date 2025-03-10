@@ -1,0 +1,4 @@
+"0",""
+"0","data_1k_DR$dist_log <- log10(data_1k_DR$distancia) "
+"0","data_1k_DR$resp_log <- log10(data_1k_DR$respuesta)"
+"0",""

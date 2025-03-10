@@ -1,0 +1,7 @@
+"0","normality_slopes <- data_slopes_clean %>%"
+"0","  group_by(freq, condicion) %>%"
+"0","  summarise(statistic = shapiro.test(slope)$statistic,"
+"0","            p.value = shapiro.test(slope)$p.value, "
+"0","            normality=(p.value>0.05))"
+"0",""
+"0","normality_slopes"

@@ -1,0 +1,7 @@
+"0",""
+"0","#ggplot(data_clean, aes(x=dist_log, y=res, color=condicion))+"
+"0","#  geom_point()+"
+"0","#  geom_hline(yintercept = 0)+"
+"0","#  facet_wrap(~freq+condicion)+"
+"0","#  theme_minimal()"
+"0",""

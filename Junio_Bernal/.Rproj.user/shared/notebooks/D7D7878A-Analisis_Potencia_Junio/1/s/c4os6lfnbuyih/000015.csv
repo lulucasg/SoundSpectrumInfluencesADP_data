@@ -1,0 +1,9 @@
+"0","effectsize::eta_squared(lmer.1k, partial = TRUE)
+"
+"1","[34m# Effect Size for ANOVA (Type III)[39m
+
+Parameter | Eta2 (partial) |       95% CI
+-----------------------------------------
+condicion |           0.65 | [0.47, 1.00]
+[36m
+- One-sided CIs: upper bound fixed at [1.00].[39m"

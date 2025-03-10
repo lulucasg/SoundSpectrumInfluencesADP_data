@@ -1,0 +1,7 @@
+"0","ggsave(plot = last_plot(),"
+"0","  file = ""plt_dist_curves_1kvs4k.eps"","
+"0","  device = cairo_ps,"
+"0","  width = 2600,"
+"0","  height = 1400,"
+"0","  unit = ""px"","
+"0","  dpi = 300)"

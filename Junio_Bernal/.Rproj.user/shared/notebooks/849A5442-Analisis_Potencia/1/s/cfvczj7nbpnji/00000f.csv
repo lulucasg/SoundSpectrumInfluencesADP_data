@@ -1,0 +1,1 @@
+"0","data_1k_DR <- data_1k_DR[!(data_1k_DR$nsub %in% c(4,55,56,69)), ]"

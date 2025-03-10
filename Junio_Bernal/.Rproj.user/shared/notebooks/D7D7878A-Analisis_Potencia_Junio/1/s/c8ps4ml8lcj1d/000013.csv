@@ -1,0 +1,20 @@
+"0","# Datos
+df <- 40
+estimate <- c(0.19158, -0.00969, -0.20127)
+SE <- c(0.0744, 0.0744, 0.0744)
+
+# Valor t para 95% CI
+t <- qt(0.975, df)
+
+# Cálculo del intervalo de confianza
+lower <- estimate - t * SE
+upper <- estimate + t * SE
+
+# Resultados
+CI <- data.frame(Comparison = c(""HH - LL"", ""HH - WW"", ""LL - WW""),
+                 Estimate = estimate,
+                 Lower = lower,
+                 Upper = upper)
+print(CI)
+"
+"0",""

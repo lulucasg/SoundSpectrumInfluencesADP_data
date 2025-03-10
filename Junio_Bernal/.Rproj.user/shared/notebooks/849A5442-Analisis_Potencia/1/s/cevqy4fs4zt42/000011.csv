@@ -1,0 +1,8 @@
+"0",""
+"0","ggsave(plot = last_plot(),"
+"0","  file = ""dist_curves_exp2.eps"","
+"0","  device = cairo_ps,"
+"0","  width = 1800,"
+"0","  height = 1200,"
+"0","  unit = ""px"","
+"0","  dpi = 300)"
