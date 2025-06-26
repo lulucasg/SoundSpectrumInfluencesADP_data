@@ -1,0 +1,13 @@
+"0",""
+"0","plot"
+"1","function (x, y, ...) 
+"
+"1","UseMethod(""plot"")
+"
+"1","<bytecode: 0x0000014436e450c0>
+"
+"1","<environment: namespace:base>
+"
+"0","### 1K Data_prom tibble with means and std per condition"
+"0",""
+"0",""

@@ -1,0 +1,10 @@
+"0",""
+"0","plot"
+"1","function (x, y, ...) 
+"
+"1","UseMethod(""plot"")
+"
+"1","<bytecode: 0x0000015d415a6a08>
+"
+"1","<environment: namespace:base>
+"

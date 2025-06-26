@@ -1,0 +1,5 @@
+"0","questionary <- questionary %>% pivot_longer("
+"0","  cols = !c(""id"",""block"",""condition"",""subjectHeight""),"
+"0","  names_to = ""question"","
+"0","  values_to = ""answer"""
+"0",")"

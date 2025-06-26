@@ -1,0 +1,8 @@
+"0","df_var <- data_clean %>% filter(is_outlier_lb==FALSE) %>%"
+"0","  group_by(nsub, distancia, condicion,freq) %>%"
+"0","  summarise(varianza = var(log_bias, na.rm = TRUE),"
+"0","            value_sd = sd(log_bias, na.rm = TRUE),"
+"0","            media = mean(log_bias, na.rm = TRUE),"
+"0","            coef = value_sd/media,"
+"0","    .groups = ""drop"""
+"0","  )"

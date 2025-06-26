@@ -1,14 +1,47 @@
 "0","# Corregimos la columna de condicion con una etiqueta mas legible"
 "0","data_1k_DR$condicion[data_1k_DR$condicion==0] <- ""WW"""
+"2","Error in exists(cacheKey, where = .rs.WorkingDataEnv, inherits = FALSE) : 
+  invalid first argument
+"
+"2","Error in assign(cacheKey, frame, .rs.CachedDataEnv) : 
+  attempt to use zero-length variable name
+"
 "0","data_1k_DR$condicion[data_1k_DR$condicion==1] <- ""LL"""
+"2","Error in exists(cacheKey, where = .rs.WorkingDataEnv, inherits = FALSE) : 
+  invalid first argument
+"
+"2","Error in assign(cacheKey, frame, .rs.CachedDataEnv) : 
+  attempt to use zero-length variable name
+"
 "0","data_1k_DR$condicion[data_1k_DR$condicion==2] <- ""LW"""
+"2","Error in exists(cacheKey, where = .rs.WorkingDataEnv, inherits = FALSE) : 
+  invalid first argument
+"
+"2","Error in assign(cacheKey, frame, .rs.CachedDataEnv) : 
+  attempt to use zero-length variable name
+"
 "0","data_1k_DR$condicion[data_1k_DR$condicion==3] <- ""WL"""
-"0",""
+"2","Error in exists(cacheKey, where = .rs.WorkingDataEnv, inherits = FALSE) : 
+  invalid first argument
+"
+"2","Error in assign(cacheKey, frame, .rs.CachedDataEnv) : 
+  attempt to use zero-length variable name
+"
 "0","orden_bloques <- read.csv(""./orden_bloques.csv"")"
 "0","data_1k_DR <- merge(x=orden_bloques,y=data_1k_DR,"
 "0","                             by=c(""nsub"",""condicion""))"
-"0",""
+"2","Error in exists(cacheKey, where = .rs.WorkingDataEnv, inherits = FALSE) : 
+  invalid first argument
+"
+"2","Error in assign(cacheKey, frame, .rs.CachedDataEnv) : 
+  attempt to use zero-length variable name
+"
 "0","# Erase redundant columns"
 "0","data_1k_DR <- data_1k_DR[, !names(data_1k_DR) %in% c(""bloque"",""altura"")]"
-"0",""
+"2","Error in exists(cacheKey, where = .rs.WorkingDataEnv, inherits = FALSE) : 
+  invalid first argument
+"
+"2","Error in assign(cacheKey, frame, .rs.CachedDataEnv) : 
+  attempt to use zero-length variable name
+"
 "0","rm(orden_bloques)"
