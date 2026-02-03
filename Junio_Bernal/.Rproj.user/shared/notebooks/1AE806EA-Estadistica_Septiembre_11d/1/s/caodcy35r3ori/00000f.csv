@@ -1,0 +1,7 @@
+"0","# Filtrar los datos"
+"0","data_plot_lb <- data_clean %>% "
+"0","  filter(is_outlier == FALSE)#, distancia>=2)"
+"0",""
+"0","# Obtener predicciones del modelo (solo efectos fijos)"
+"0","data_plot_lb$pred_logbias <- predict(modelo_logbias, re.form = NA)"
+"0",""

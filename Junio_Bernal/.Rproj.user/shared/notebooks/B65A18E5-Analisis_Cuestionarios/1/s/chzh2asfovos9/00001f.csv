@@ -1,6 +1,0 @@
-"0","questionary_longer <- questionary %>% pivot_longer("
-"0","  cols = !c(""id"",""block"",""condition"",""subjectHeight"","
-"0","            ""Q1"",""Q2"",""Q3"",""Q4"",""Q5"",""Q6"",""Q7"",""Q8"",""Q9"",""Q10"",""Q11"",""Q12""),"
-"0","  names_to = ""Factor"","
-"0","  values_to = ""Score"""
-"0",")"

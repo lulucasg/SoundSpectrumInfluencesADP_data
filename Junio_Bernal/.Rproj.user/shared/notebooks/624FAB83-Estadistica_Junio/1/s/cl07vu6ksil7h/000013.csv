@@ -1,4 +1,0 @@
-"0","data_avg_clean <- anti_join(data_avg, data_outliers)
-"
-"2","Joining with `by = join_by(condicion, freq, distancia, abs_mean_log_bias)`"
-"0",""

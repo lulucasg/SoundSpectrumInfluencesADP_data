@@ -1,0 +1,44 @@
+"0","# Corregimos la columna de condicion con una etiqueta mas legible"
+"2","Error in exists(cacheKey, where = .rs.WorkingDataEnv, inherits = FALSE) : 
+  invalid first argument
+"
+"0","data_1k_DR$condicion[data_1k_DR$condicion==0] <- ""WW"""
+"2","Error in exists(cacheKey, where = .rs.WorkingDataEnv, inherits = FALSE) : 
+  invalid first argument
+"
+"0","data_1k_DR$condicion[data_1k_DR$condicion==1] <- ""LL"""
+"2","Error in exists(cacheKey, where = .rs.WorkingDataEnv, inherits = FALSE) : 
+  invalid first argument
+"
+"0","data_1k_DR$condicion[data_1k_DR$condicion==2] <- ""LW"""
+"2","Error in exists(cacheKey, where = .rs.WorkingDataEnv, inherits = FALSE) : 
+  invalid first argument
+"
+"0","data_1k_DR$condicion[data_1k_DR$condicion==3] <- ""WL"""
+"2","Error in exists(cacheKey, where = .rs.WorkingDataEnv, inherits = FALSE) : 
+  invalid first argument
+"
+"0","orden_bloques <- read.csv(""./orden_bloques.csv"")"
+"2","Error in exists(cacheKey, where = .rs.WorkingDataEnv, inherits = FALSE) : 
+  invalid first argument
+"
+"0","data_1k_DR <- merge(x=orden_bloques,y=data_1k_DR,"
+"2","Error in exists(cacheKey, where = .rs.WorkingDataEnv, inherits = FALSE) : 
+  invalid first argument
+"
+"0","                             by=c(""nsub"",""condicion""))"
+"2","Error in exists(cacheKey, where = .rs.WorkingDataEnv, inherits = FALSE) : 
+  invalid first argument
+"
+"0","# Erase redundant columns"
+"2","Error in exists(cacheKey, where = .rs.WorkingDataEnv, inherits = FALSE) : 
+  invalid first argument
+"
+"0","data_1k_DR <- data_1k_DR[, !names(data_1k_DR) %in% c(""bloque"",""altura"")]"
+"2","Error in exists(cacheKey, where = .rs.WorkingDataEnv, inherits = FALSE) : 
+  invalid first argument
+"
+"0","rm(orden_bloques)"
+"2","Error in exists(cacheKey, where = .rs.WorkingDataEnv, inherits = FALSE) : 
+  invalid first argument
+"

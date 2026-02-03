@@ -1,0 +1,7 @@
+"0","dir_1k_DR <- ""./Data_1k_DR"""
+"0","data_1k_DR <- "
+"0","    list.files(path=dir_1k_DR, pattern = ""*.csv"",full.names = TRUE) %>% "
+"0","    map_df(~fread(.) %>% mutate(trial_Order = row_number())) %>%"
+"0","    mutate(freq = ""1k"")"
+"0",""
+"0","rm(dir_1k_DR)"

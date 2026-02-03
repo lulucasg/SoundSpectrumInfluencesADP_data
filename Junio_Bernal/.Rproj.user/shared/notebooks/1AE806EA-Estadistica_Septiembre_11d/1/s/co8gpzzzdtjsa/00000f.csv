@@ -1,0 +1,7 @@
+"0","# Filtrar los datos"
+"0","data_plot <- data_clean %>% "
+"0","  filter(is_outlier == FALSE)#, distancia>=2)"
+"0",""
+"0","# Obtener predicciones del modelo (solo efectos fijos)"
+"0","data_plot$pred_resp <- predict(lmer.1k, re.form = NA)"
+"0",""

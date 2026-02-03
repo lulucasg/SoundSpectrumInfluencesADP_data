@@ -1,0 +1,5 @@
+"0","data %>%"
+"0","  group_by(Condition) %>%"
+"0","  summarise("
+"0","    shapiro_p = shapiro.test(calc_error_cm)$p.value"
+"0","  )"

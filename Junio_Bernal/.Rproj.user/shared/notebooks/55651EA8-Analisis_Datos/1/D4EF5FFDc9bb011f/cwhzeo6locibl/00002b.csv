@@ -1,0 +1,7 @@
+"0","plot <- data %>% filter(block!=-1) %>% ggplot(aes(x=Condition, y=calc_error_cm, "
+"0","                            fill = Condition))+"
+"0","  geom_jitter(aes(color=Condition),width = 0.2)+"
+"0","  geom_boxplot(alpha=0.5, outlier.alpha=0)+"
+"0","  #facet_grid(~id)"
+"0","  theme_minimal()"
+"0","plot  + labs(title = ""Error en cm"", x = ""Condition"")"

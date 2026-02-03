@@ -1,0 +1,23 @@
+"0","##partial eta sq
+effectsize::eta_squared(modelo_logbias, partial = TRUE)
+"
+"1","[34m# Effect Size for ANOVA (Type III)[39m
+
+Parameter                | Eta2 (partial) |       95% CI
+--------------------------------------------------------
+log(distancia)           |           0.74 | [0.65, 1.00]
+condicion                |           0.88 | [0.85, 1.00]
+log(distancia):condicion |           0.08 | [0.08, 1.00]
+[36m
+- One-sided CIs: upper bound fixed at [1.00].[39m"
+"0","#Rsq"
+"0","r.squaredGLMM(modelo_logbias)  "
+"1","    "
+"1","       R2m"
+"1","       R2c"
+"1","
+[1,]"
+"1"," 0.2004333"
+"1"," 0.8220387"
+"1","
+"

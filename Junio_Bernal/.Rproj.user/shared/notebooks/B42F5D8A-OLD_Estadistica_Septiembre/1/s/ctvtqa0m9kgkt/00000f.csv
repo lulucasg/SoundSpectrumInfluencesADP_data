@@ -1,0 +1,21 @@
+"0","library(flexplot)
+"
+"2","
+Adjuntando el paquete: ‘flexplot’
+
+"
+"2","The following object is masked from ‘package:sjstats’:
+
+    icc
+
+"
+"2","The following object is masked from ‘package:plotrix’:
+
+    rescale
+
+"
+"2","The following object is masked from ‘package:ggplot2’:
+
+    flip_data
+
+"

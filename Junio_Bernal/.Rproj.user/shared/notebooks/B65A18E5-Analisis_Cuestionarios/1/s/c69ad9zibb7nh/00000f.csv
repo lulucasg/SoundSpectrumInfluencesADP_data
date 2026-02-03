@@ -1,0 +1,9 @@
+"0","questionary_wide <- pivot_wider(questionary,
+                       names_from = Condition,
+                       values_from = Embodiment)
+"
+"1","[1m[33mError[39m in `pivot_wider()`:[22m
+[33m![39m Can't select columns that don't exist.
+[31m✖[39m Column `Condition` doesn't exist.
+[90mRun `]8;;x-r-run:rlang::last_trace()rlang::last_trace()]8;;` to see where the error occurred.[39m
+"

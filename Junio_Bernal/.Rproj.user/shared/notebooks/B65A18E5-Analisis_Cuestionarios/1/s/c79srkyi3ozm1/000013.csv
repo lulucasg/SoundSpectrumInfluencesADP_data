@@ -1,6 +1,0 @@
-"0","plotq <- questionary %>% ggplot(aes(x=condition, y=Embodiment, "
-"0","                            fill = condition))+"
-"0","  geom_jitter(aes(color=condition),width = 0.2)+"
-"0","  geom_boxplot(alpha=0.8)+"
-"0","  theme_minimal()"
-"0","plotq"
