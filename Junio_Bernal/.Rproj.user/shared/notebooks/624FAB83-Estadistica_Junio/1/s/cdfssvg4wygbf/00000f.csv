@@ -1,3 +1,0 @@
-"0","data <- data[!(data$nsub==3), ]"
-"0","data <- data[!(data$nsub==17), ] #Este respondió 350 metros de largo la sala"
-"0","#data <- data[!(data$nsub==2), ]"

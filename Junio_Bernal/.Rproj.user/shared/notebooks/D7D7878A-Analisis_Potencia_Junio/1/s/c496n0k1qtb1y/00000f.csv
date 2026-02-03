@@ -1,6 +1,0 @@
-"0",""
-"0","plot <- ggplot(data_bias, aes(x= condicion, y = log_bias, fill= condicion)) +"
-"0","    geom_boxplot()+"
-"0","  facet_grid(~freq)"
-"0",""
-"0","plot"

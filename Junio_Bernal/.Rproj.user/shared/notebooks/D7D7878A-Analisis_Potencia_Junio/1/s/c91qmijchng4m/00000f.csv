@@ -1,3 +1,0 @@
-"0","data_bias <- data_clean %>% group_by(condicion, freq, distancia) %>% "
-"0","            summarise(log_bias = mean(log(respuesta/distancia)))"
-"2","`summarise()` has grouped output by 'condicion', 'freq'. You can override using the `.groups` argument."

@@ -1,8 +1,0 @@
-"0","ggplot(data, aes(sample = calc_error_cm)) +"
-"0","  stat_qq() +"
-"0","  stat_qq_line() +"
-"0","  facet_wrap(~Condition, scales = ""free"") +"
-"0","  labs(title = ""Q–Q plots por condición"","
-"0","       x = ""Cuantiles teóricos (Normal)"","
-"0","       y = ""Cuantiles observados"")"
-"0",""

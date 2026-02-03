@@ -1,4 +1,0 @@
-"0","dir <- ""./data/questionary"""
-"0","questionary <- list.files(path=dir, pattern = ""*.csv"",full.names = TRUE) %>% "
-"0","    map_df(~fread(.))"
-"0",""

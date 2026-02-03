@@ -1,5 +1,0 @@
-"0","data_1k_DR <- data_1k_DR %>% mutate(room = ifelse(nsub <= 28, ""Salta"", ""Bernal""))"
-"0",""
-"2","Error in exists(cacheKey, where = .rs.WorkingDataEnv, inherits = FALSE) : 
-  invalid first argument
-"

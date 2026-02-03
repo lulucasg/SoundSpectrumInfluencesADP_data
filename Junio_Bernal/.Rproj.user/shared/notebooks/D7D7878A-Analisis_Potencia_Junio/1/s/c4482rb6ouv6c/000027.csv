@@ -1,2 +1,0 @@
-"0","# Histogram & QQ Plot"
-"0","hist(sresids, col='steelblue', main='Residues',xlab=""Residues"")"

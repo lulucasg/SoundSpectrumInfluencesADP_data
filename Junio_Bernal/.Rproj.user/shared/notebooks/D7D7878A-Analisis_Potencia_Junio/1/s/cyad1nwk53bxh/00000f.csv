@@ -1,4 +1,0 @@
-"0",""
-"0","data$dist_log <- log10(data$distancia) "
-"0","data$resp_log <- log10(data$respuesta)"
-"0",""

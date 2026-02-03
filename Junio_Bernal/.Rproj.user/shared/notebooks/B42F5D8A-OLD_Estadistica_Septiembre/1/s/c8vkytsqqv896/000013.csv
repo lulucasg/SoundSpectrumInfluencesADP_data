@@ -1,7 +1,0 @@
-"0","lmer.1k <- lmer(log(respuesta) ~ log(distancia) * condicion +
-          (1 + log(distancia) | nsub) +
-        (0 + condicion | nsub),
-                 data = data_clean %>% filter(is_outlier==FALSE))
-"
-"2","Aviso: Model failed to converge with max|grad| = 0.00592274 (tol = 0.002, component 1)"
-"0",""

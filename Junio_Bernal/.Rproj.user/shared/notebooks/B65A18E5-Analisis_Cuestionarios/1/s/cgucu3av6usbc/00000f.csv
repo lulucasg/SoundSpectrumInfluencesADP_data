@@ -1,1 +1,0 @@
-"0","questionary_clean <- questionary[!(questionary$id %in% c(7,11,18,27,31)), ]"

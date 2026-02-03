@@ -1,8 +1,0 @@
-"0","data_1k_DR <- data_1k_DR[!(data_1k_DR$nsub %in% c(4,55,56,69)), ]"
-"2","Error in exists(cacheKey, where = .rs.WorkingDataEnv, inherits = FALSE) : 
-  invalid first argument
-"
-"0","data_1k_DR <- data_1k_DR[!(data_1k_DR$nsub %in% c(18,36)), ]"
-"2","Error in exists(cacheKey, where = .rs.WorkingDataEnv, inherits = FALSE) : 
-  invalid first argument
-"

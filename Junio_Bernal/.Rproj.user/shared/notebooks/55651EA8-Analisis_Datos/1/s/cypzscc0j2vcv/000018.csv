@@ -1,8 +1,0 @@
-"0","# 2. Exploración de distribución"
-"0","ggplot(data %>% filter(block>0,"
-"0","         calc_error_cm>=-100, calc_error_cm<=250), "
-"0","       aes(x=calc_error_cm), color=Condition) + "
-"0","  geom_histogram(bins=30, fill=""Skyblue"", color=""black"") +"
-"0","  facet_wrap(~Condition)+"
-"0","  labs(title=""Distribución de Signed Error"")+"
-"0","  theme_bw()"
