@@ -10,21 +10,11 @@ Experimental data repository and analysis scripts for the study "Sound Spectrum 
 
 ## 📁 Repository Contents
 
-### `Piloto_Mayo_Salta/`
-Data from the pilot study conducted in Salta (May 2023) to determine the optimal filter cutoff frequency.
+### `Septiembre_Bernal/`
+Main experiment data (September 2023, UNQ Bernal).
 
-- **`Data/`**: Raw pilot data
-- **`Limpieza_de_Datos.R`** and **`Limpieza_de_Datos_2.0.R`**: Preprocessing scripts
-- **`Sample_Size_Calc.Rmd`**: Sample size calculation
-- **`graph/`**: Generated plots
-
-Two cutoff frequencies (1 kHz and 4 kHz) were evaluated. Goodness-of-fit and effect size analyses determined **1 kHz** (η² = 0.74) to be used in the main experiment.
-
-### `Junio_Bernal/`
-Main experiment data with **1 kHz cutoff filter** (June-July 2023, UNQ Bernal).
-
-**Participants**: 23 valid subjects (2 excluded)  
-**Design**: 4 blocks × 12 distances × 3 repetitions = 144 trials/subject
+**Participants**: Combined dataset from Salta and Bernal locations  
+**Design**: 4 conditions (WW, LL, LW, WL) × 11-12 distances × 3 repetitions
 
 #### Experimental conditions:
 - **WW** (Wide-Wide): Direct and reverberant unfiltered
@@ -33,29 +23,22 @@ Main experiment data with **1 kHz cutoff filter** (June-July 2023, UNQ Bernal).
 - **WL** (Wide-Low): Direct unfiltered, reverberant filtered
 
 #### Files:
-- **`Data_1k/`**: 69 CSV files (one per subject-condition-block) with raw responses
-- **`Estadistica_Junio.Rmd`**: Main statistical analysis with LMEMs
-- **`Analisis_Potencia_Junio.Rmd`**: Statistical power analysis
-- **`Resultados_Indicadores_Junio.Rmd`**: Perceptual performance metrics
-- **`orden_bloques.csv`**: Randomized presentation order per subject
-- **`Indicadores/`**: Computed indicator results
-- **Figures** (`.eps`, `.png`): Distance curves, logarithmic bias, boxplots, distributions
+- **`Data_1k_DR/`**: Raw experimental data (CSV files)
+- **`Estadistica_Septiembre_Respuestas.Rmd`**: Statistical analysis of perceived distances
+- **`Estadistica_Septiembre_Sesgo.Rmd`**: Logarithmic bias analysis
+- **`Estadistica_Septiembre_11d.Rmd`**: Analysis for 11-distance subset
+- **`Resultados_Indicadores.Rmd`**: Perceptual performance indicators
+- **`orden_bloques.csv`**: Randomized block presentation order
+- **`Indicadores/`**: Computed performance metrics
+- **`Figuras/`**: Generated figures for publication (`.eps`, `.png`)
 
-### `Septiembre_Bernal/`
-Replication and extension experiment (September 2023, UNQ Bernal).
-
-**Participants**: 22 valid subjects  
-**Variations**: Inclusion of Salta data for cross-group comparative analysis
+### `Graficos_Espectros/`
+Spectral analysis and broadband level (BL) / direct-to-reverberant ratio (DRR) visualizations.
 
 #### Files:
-- **`Data_1k_DR/`**: Data with refined structure
-- **`Estadistica_Septiembre.Rmd`**: Statistical analysis
-- **`Analisis_Potencia.Rmd`**: Power analysis
-- **`Comparación_Distancias.Rmd`**: Comparison across distances and groups
-- **`Revisión_Sujetos.Rmd`**: Individual participant validation
-- **`Resultados_Indicadores.Rmd`**: Performance indicators
-- **`orden_bloques.csv`**: Condition counterbalancing
-- **Figures**: Comparative visual analyses
+- **`Gráficos_Espectros.Rmd`**: R Markdown script for spectral plots
+- **`BL_DRR.eps`**: Combined BL and DRR figure
+- **`Data/`**: Data files for spectral analysis
 
 ## 🔬 Experimental Data
 
@@ -64,7 +47,7 @@ Replication and extension experiment (September 2023, UNQ Bernal).
 - **Processing**: Convolution with BRIRs (Binaural Room Impulse Responses)
 - **Filtering**: Single-pole Butterworth low-pass filter at 1 kHz applied independently to direct and reverberant components
 - **Environment**: Empty water tank (RT60 ≈ 8 s)
-- **Distances**: 12 logarithmically-spaced positions (1.5 - 26 m)
+- **Distances**: 11-12 logarithmically-spaced positions
 
 ### CSV File Structure
 
@@ -99,8 +82,8 @@ R Markdown scripts implement:
 
 ### Main models
 - **LMEMs** (Linear Mixed-Effects Models) using `lme4`
-- **Dependent variable**: `log(perceived_distance)`
-- **Fixed effects**: `log(source_distance)`, `condition`, interaction
+- **Dependent variable**: `log(perceived_distance)` or `log_bias`
+- **Fixed effects**: `log(source_distance)`, `condition`, `group`, interactions
 - **Random effects**: By-participant intercept and slope, by-condition slope
 
 ### Analyzed metrics
