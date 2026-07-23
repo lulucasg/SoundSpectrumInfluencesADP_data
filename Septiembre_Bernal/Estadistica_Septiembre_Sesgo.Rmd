@@ -361,17 +361,198 @@ ggplot(df_emm, aes(x = condicion, y = emmean, color = condicion)) +
   )
 ```
 
+
+## Modelo var_sesgo
+
+var_sesgo al ser varianza, tiene una distribución chi^2. Por ello, le aplicamos la transformación log para que sea normal. Además, le sumamos un epsilon (+1e-6) para evitar calcular log(0). Quitamos el resto de los efectos aleatorios porque daba singular. Usamos log_distancia (y no distancia real) para mantener la estructura que venimos usando y poder comparar en una escala perceptual.
+
+IMPORTANTE: la varianza está calculada a partir de 3 muestras (var=mean(error^2)) dado que solo hicimos 3 repeticiones por estímulo. Esto puede ser ruidoso, y es una limitación.
+
 ```{r}
 var_sesgo_df <- data_clean %>%
   group_by(nsub, condicion, log_distancia) %>%
   summarise(var_sesgo = var(log_bias, na.rm = TRUE), .groups = "drop")
 
-modelo_varianza <- lm(var_sesgo ~ condicion*log_distancia, data = var_sesgo_df)
+
+modelo_varianza <-lmer(log(var_sesgo+1e-6) ~ log_distancia * condicion +
+     (1 | nsub),
+     data = var_sesgo_df)
+
+logd_seq <- seq(min(var_sesgo_df$log_distancia),
+                max(var_sesgo_df$log_distancia),
+                length.out = 50)
+
+emm <- emmeans(modelo_varianza,
+               ~ condicion | log_distancia,
+               at = list(log_distancia = logd_seq))
+
+emm_df <- as.data.frame(emm)
+
+anova(modelo_varianza)
+summary(modelo_varianza)
+
+r.squaredGLMM(modelo_varianza)  
+
+#Dado que no hay interacción distancia:condicion, comparamos promediando distancias
+emm <- emmeans(modelo_varianza, ~ condicion)
+pairs(regrid(emm), adjust = "bonferroni")
+```
+A small constant (1e−6) was added prior to log transformation to handle zero variance estimates.
+
+La varianza intra-sujeto cambia con distancia perceptual
+
+Efecto pequeño de condicion.F ≈ 2.72 p ≈ 0.043
+
+No hay evidencia de que las condiciones cambien el scaling con distancia
+Las condiciones cambian el nivel base de varianza
+Pero no cambian cómo escala con distancia
+
+Intra-subject variability increased as a function of perceptual distance (F(1, ~2916) = 30.84, p < .001).
+A small but significant main effect of condition was observed (F(3, ~2916) = 2.72, p = .043), indicating differences in baseline variability between conditions.
+No interaction between distance and condition was found (p = .68), suggesting similar scaling of variability with distance across conditions.
 
 
-modelo_varianza <- lmer(var_sesgo ~ log_distancia * condicion + 
-                         (1 +log_distancia |nsub),
-                       data = var_sesgo_df %>% filter(condicion%in%c("LL","LW")))
+Interacciones NO significativas.
+Condiciones no cambian pendiente
+Solo cambian nivel base
+
+Variability differed across conditions, with LL showing the lowest variability and WW the highest, while LW and WL showed intermediate levels. However, the scaling of variability with perceptual distance remained consistent across conditions
+
+The model explained a small proportion of variance (marginal R² = 0.02; conditional R² = 0.08), which is expected given the high variability of variance estimates derived from small sample sizes per cell.
+
+Approximately 9% of variance estimates were near zero, reflecting the limited number of trials used to compute within-subject variance. Log transformation mitigated skewness while preserving relative differences across conditions.
+
+Plot var_sesgo
+
+```{r}
+ggplot(emm_df,
+       aes(x = log_distancia,
+           y = exp(emmean),
+           color = condicion)) +
+  geom_line(size = 1) +
+  geom_ribbon(aes(ymin = exp(lower.CL),
+                  ymax = exp(upper.CL),
+                  fill = condicion),
+              alpha = 0.2,
+              color = NA) +
+  scale_x_continuous(
+    name = "Distance (m)",
+    breaks = log(c(1.5, 2, 2.5, 3.3, 4.3, 5.6, 7.2, 9.4, 12, 15.5, 20, 26)),
+    labels = c(1.5, 2, 2.5, 3.3, 4.3, 5.6, 7.2, 9.4, 12, 15.5, 20, 26)#,
+    #limits = c(0.0, log(26))
+  ) +
+  scale_color_manual(
+  values = cols,
+  limits = c('WW', 'LL', 'LW', 'WL')#, 
+  #labels = c(
+  #  expression("WW (k=0.96, a=0.83)"),
+  #  expression("LL (k=3.92, a=0.59)"),
+  #  expression("LW (k=1.47, a=0.72)"),
+  #  expression("WL (k=1.88, a=0.62)")
+  #  )
+  )+
+  #guides(color = guide_legend(override.aes = list(size = 4)), parse = TRUE)+
+  guides(fill = "none")+
+  scale_fill_manual(
+  values = cols,
+  limits = c('WW', 'LL', 'LW', 'WL')
+  )+
+  labs(y = "Intrasubject Variability",
+       color = "Condition")+
+  theme_bw() +
+  theme(
+    text = element_text(family = "Times", colour = "black"),
+    axis.title = element_text(size = 12),
+    axis.text = element_text(size = 11),
+    legend.text = element_text(size = 9),
+    legend.title = element_blank(),
+    plot.title = element_text(size = 12, hjust = 0.5),
+    legend.background = element_blank(),
+    legend.box.background = element_rect(colour = "black"),
+    #panel.grid = element_blank(),
+    legend.position = c(0.78, 0.71)
+  )
+ggsave(plot = last_plot(),
+  file = "FigureS8.eps",
+  device = cairo_ps,
+  width = 1380,
+  height = 1100,
+  unit = "px",
+  dpi = 300)
+
+
+```
+```{r}
+ggplot(var_sesgo_df, aes(var_sesgo, color = condicion, fill=condicion)) +
+  geom_histogram(bins=50 ,alpha = .9)+
+  facet_wrap(~condicion)
+
+qqnorm(residuals(modelo_varianza))
+hist(residuals(modelo_varianza))
+```
+
+```{r}
+table(
+  cut(
+    var_sesgo_df$var_sesgo,
+    breaks = c(-Inf, 1e-10, 1e-6, 1e-4, 1e-2, Inf)
+  )
+)
+
+#Porcentaje de varianza==0
+mean(var_sesgo_df$var_sesgo == 0, na.rm = TRUE) * 100
+
+```
+Testeo la cola de la varianza
+
+```{r}
+var_sesgo_df %>%
+  group_by(condicion) %>%
+  summarise(
+    q90 = quantile(var_sesgo, .90, na.rm=TRUE),
+    q95 = quantile(var_sesgo, .95, na.rm=TRUE),
+    q99 = quantile(var_sesgo, .99, na.rm=TRUE)
+  )
+
+
+thr <- quantile(var_sesgo_df$var_sesgo, .95, na.rm=TRUE)
+
+var_sesgo_df %>%
+  group_by(condicion) %>%
+  summarise(prop_extreme = mean(var_sesgo > thr, na.rm=TRUE))
+```
+
+## OLD
+
+```{r}
+var_sesgo_df <- data_clean %>%
+  group_by(nsub, condicion, log_distancia) %>%
+  summarise(var_sesgo = var(log_bias, na.rm = TRUE), .groups = "drop")
+
+modelo_varianza <- lm(log(log_bias**2 +1e-16) ~ condicion*log_distancia, data = data_clean)
+
+
+modelo_varianza <- lmer(log(var_sesgo + 1e-6) ~ log_distancia * condicion + 
+                         (1 + log_distancia | nsub) +
+                          (0 + condicion | nsub),
+                       data = var_sesgo_df) #%>% filter(condicion%in%c("WW","LL")))
+
+modelo_varianza <-lmer(var_sesgo ~ log_distancia * condicion +
+     (1 | nsub),
+     data = var_sesgo_df)
+
+modelo_varianza <- lmer(log(log_bias^2 + 1e-6) ~ log_distancia * condicion +
+                          (1 + log_distancia | nsub) +
+                          (0 + condicion | nsub),
+                        data = data_clean,
+                        control = lmerControl(optimizer = "bobyqa"))
+
+emmeans(modelo_varianza,
+        list(pairwise ~ condicion|log_distancia),
+        adjust="bonferroni",
+        infer = TRUE,
+        pbkrtest.limit = 8969)
+
 allFit(modelo_varianza)
 lme4::isSingular(modelo_varianza, tol = 1e-4)
 r.squaredGLMM(modelo_varianza)
@@ -383,6 +564,58 @@ plot
 
 anova(modelo_varianza)
 summary(modelo_varianza)
+```
+Trial-Level error
+```{r}
+modelo_varianza <- lmer(log(log_bias^2 + 1e-6) ~ log_distancia * condicion +
+                          (1 + log_distancia | nsub) +
+                          (0 + condicion | nsub),
+                        data = data_clean,
+                        control = lmerControl(optimizer = "bobyqa"))
+
+# Grid de distancias
+grid_dist <- seq(
+  min(data_clean$log_distancia),
+  max(data_clean$log_distancia),
+  length.out = 50
+)
+
+# Predicciones del modelo
+emm_var <- emmeans(
+  modelo_varianza,
+  ~ condicion | log_distancia,
+  at = list(log_distancia = grid_dist)
+)
+
+emm_df <- as.data.frame(emm_var)
+
+emm_df$varianza <- exp(emm_df$emmean)
+emm_df$var_low <- exp(emm_df$asymp.LCL)
+emm_df$var_high <- exp(emm_df$asymp.UCL)
+emm_df$distancia_real <- exp(emm_df$log_distancia)
+
+ggplot(emm_df, aes(x = log_distancia, y = varianza, color = condicion)) +
+  geom_line(size = 1.2) +
+  geom_ribbon(aes(ymin = var_low, ymax = var_high, fill = condicion),
+              alpha = 0.2, color = NA) +
+  labs(
+    x = "Log Distancia",
+    y = "Varianza trial-level",
+    title = "Varianza trial-level predicha (escala original)"
+  ) +
+  theme_classic()
+
+# Gráfico
+ggplot(emm_df, aes(x = log_distancia, y = emmean, color = condicion)) +
+  geom_line(size = 1.2) +
+  geom_ribbon(aes(ymin = asymp.LCL, ymax = asymp.UCL, fill = condicion),
+              alpha = 0.2, color = NA) +
+  labs(
+    x = "Log Distancia",
+    y = "Log Varianza (log error²)",
+    title = "Varianza trial-level predicha por el modelo"
+  ) +
+  theme_classic()
 ```
 Se evaluó si la varianza del sesgo logarítmico (variabilidad de las respuestas dentro de cada sujeto × condición) difiere entre condiciones experimentales.
 
@@ -410,6 +643,11 @@ Las condiciones mixtas (LW y WL) están en un nivel intermedio, pero no son equi
 
 
 ```{r}
+var_sesgo_df <- data_clean %>%
+  group_by(nsub, condicion, log_distancia) %>%
+  summarise(var_sesgo = var(log_bias, na.rm = TRUE), .groups = "drop")
+
+
 ggplot(var_sesgo_df, aes(x=var_sesgo, fill=condicion))+
   geom_histogram(binwidth = 0.1)+
   scale_fill_manual(values = cols,
@@ -455,6 +693,49 @@ A Kruskal-Wallis test revealed a significant effect of condition on intra-subjec
 Post-hoc comparisons using Dunn’s test with Bonferroni correction showed that the LL condition had significantly greater intra-subject variability than all other conditions (p < .001).
 
 Additionally, the WL condition showed significantly higher variability than LW (p = .0397) and WW (p < .001), while no significant difference was found between LW and WW (p = .153).
+
+```{r}
+var_sesgo_df <- data_clean %>%
+  group_by(nsub, condicion) %>%
+  summarise(var_sesgo = var(log_bias, na.rm = TRUE), .groups = "drop")
+
+
+ggplot(var_sesgo_df, aes(x=var_sesgo, fill=condicion))+
+  geom_histogram(binwidth = 0.1)+
+  scale_fill_manual(values = cols,
+                    limits = c('WW', 'LL', 'LW', 'WL'), 
+                    labels = c('Wide-Wide', 'Low-Low', 'Low-Wide', 'Wide-Low')) +
+  labs(y='Frequency', x="var(log-bias)", fill="Condition")+
+  facet_wrap(~condicion, labeller = labeller(condicion=c(
+  "WW" = "Wide-Wide",
+  "LL" = "Low-Low",
+  "LW" = "Low-Wide",
+  "WL" = "Wide-Low")))+
+  #label_value(labels= c('Wide Band', 'Low Pass', 'High Pass'))+
+  scale_color_manual(values = cols,
+                    limits = c('WW', 'LL', 'LW', 'WL'), 
+                    labels = c('Wide-Wide', 'Low-Low', 'Low-Wide', 'Wide-Low'))+
+  #scale_x_discrete(limits = c('WW', 'LL', 'LW', 'WL'), 
+  #                  labels = c('Wide-Wide', 'Low-Low', 'Low-Wide', 'Wide-Low'))+
+  theme_bw()+
+  theme(
+    text = element_text(family = "Times"),
+    axis.title = element_text(size = 12),
+    axis.text = element_text(size = 11),
+    legend.position = "none"
+  )
+
+kruskal.test(var_sesgo ~ condicion, data = var_sesgo_df)
+
+#install.packages("dunn.test")
+library(dunn.test)
+
+dunn.test(var_sesgo_df$var_sesgo, var_sesgo_df$condicion, 
+          method = "bonferroni")
+```
+
+
+
 ```{r}
 
 ggplot(var_sesgo_df, aes(x = condicion, y = var_sesgo, fill = condicion)) +

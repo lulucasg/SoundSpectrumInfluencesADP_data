@@ -234,7 +234,9 @@ modelo_room <- lmer(log_respuesta ~ log_distancia * condicion + room +
                     (1 + log_distancia | nsub) +
                     (0 + condicion | nsub),
                     data = data_clean,
-                    control = lmerControl(optimizer = "bobyqa"))
+                    control = lmerControl(optimizer = "bobyqa",
+                                          optCtrl=list(maxfun=10000)))
+                    
 summary(modelo_room)
 anova(modelo_room)
 anova(lmer.1k, modelo_room)
@@ -244,9 +246,12 @@ BIC(lmer.1k, modelo_room)
 r.squaredGLMM(lmer.1k)  
 r.squaredGLMM(modelo_room)
 ```
+
 ```{r}
 summary(lmer.1k)
 anova(lmer.1k)
+
+#confint(lmer.1k, method="profile")
 
 ##partial eta sq
 effectsize::eta_squared(lmer.1k, partial = TRUE)
@@ -503,6 +508,14 @@ ggplot(data_prom, aes(x = log_distancia, y = prom_resp, color = condicion)) +
   #           color = cols[3], hjust = 0, vjust = 1, size = 8) +
   #annotate("text", x = log(1.5), y = log(20), label = "nk=1.88, α=0.62",
   #           color = cols[4], hjust = 0, vjust = 1, size = 8)+
+  #annotate("text",
+  #       x = log(1.6),
+  #       y = log(40),
+  #       label = expression(paste("Model fit: ", R[m]^2, " = 0.311, ",
+  #                                R[c]^2, " = 0.817")),
+  #       hjust = 0,
+  #       size = 3.5,
+  #       family = "Times")+
   scale_color_manual(
   values = cols,
   limits = c('WW', 'LL', 'LW', 'WL'), 
@@ -926,9 +939,29 @@ slopes_plot<-parametros_sujetos %>%
         legend.title = element_blank(),
         plot.title = element_text(size = 12, hjust = 0.5))
 
+r2_label <- expression(
+  paste("Model fit:  ",
+        R[m]^2, " = 0.084,   ",
+        R[c]^2, " = 0.874")
+)
 
-ggarrange(intercepts_plot, slopes_plot,
-                      ncol = 2, nrow = 1)
+combined_plot <- ggarrange(
+  intercepts_plot, slopes_plot,
+  ncol = 2, nrow = 1
+)
+
+final_plot <- annotate_figure(
+  combined_plot,
+  top = text_grob(r2_label,
+                  face = "italic",
+                  size = 12,
+                  family = "Times")
+)
+
+final_plot
+
+
+#ggarrange(intercepts_plot, slopes_plot,ncol = 2, nrow = 1)
 
 
 ggsave(plot = last_plot(),
@@ -940,7 +973,7 @@ ggsave(plot = last_plot(),
   dpi = 300)
 ```
 
-plot con ajustes
+## plot con ajustes
 ```{r}
 data_prom <- data_12m %>%
   group_by(condicion, log_distancia_c) %>%
@@ -979,10 +1012,15 @@ ggplot(data_prom, aes(x = log_distancia_c, y = prom_resp, color = condicion)) +
   scale_y_continuous(
     name = "Responses (m)",
     breaks = log(c(5.6,7.2,9.4,12,15.5,17.55817,20,26,34,45)),
-    labels = c(5.6,7.2,9.4,12,15.5,17.55817,20,26,34,45)#,
+    labels = c(5.6,7.2,9.4,12,15.5,17.6,20,26,34,45)#,
     #limits = c(0.0, log(30))
   ) +
-  
+    scale_x_continuous(
+    name = "Distance (m)",
+    breaks = c(-0.375,-0.125,0.0,0.125,0.375),
+    labels = c(12, 15.5,17.6, 20, 26)#,
+    #limits = c(0.0, log(26))
+  ) +
 #WW	2.32877	10.27	0.63709
 #LL	2.92758	18.67	0.22706
 #LW	2.37586	10.76	0.56578
@@ -991,17 +1029,17 @@ ggplot(data_prom, aes(x = log_distancia_c, y = prom_resp, color = condicion)) +
   values = cols,
   limits = c('WW', 'LL', 'LW', 'WL'), 
   labels = c(
-    expression("Wide-Wide (k=10.27, "*alpha*"=0.64)"),
-    expression("Low-Low (k=18.67, "*alpha*"=0.23)"),
-    expression("Low-Wide (k=10.76, "*alpha*"=0.56)"),
-    expression("Wide-Low (k=10.48, "*alpha*"=0.52)")
+    expression("WW (k=10.27, "*alpha*"=0.64)"),
+    expression("LL (k=18.67, "*alpha*"=0.23)"),
+    expression("LW (k=10.76, "*alpha*"=0.56)"),
+    expression("WL (k=10.48, "*alpha*"=0.52)")
     )
   )+
   #guides(color = guide_legend(override.aes = list(size = 4)), parse = TRUE)+
   labs(
     #title = "Cutoff Frequency: 1 kHz",
     #tag = "(a)",
-    x = "log(Distance)",
+    x = "Distance (m)",
     color = "Condition"
   ) +
   theme_bw() +
@@ -1009,14 +1047,21 @@ ggplot(data_prom, aes(x = log_distancia_c, y = prom_resp, color = condicion)) +
     text = element_text(family = "Times", colour = "black"),
     axis.title = element_text(size = 12),
     axis.text = element_text(size = 11),
-    legend.text = element_text(size = 12),
+    legend.text = element_text(size = 7),
     legend.title = element_blank(),
     plot.title = element_text(size = 12, hjust = 0.5),
     legend.background = element_blank(),
     legend.box.background = element_rect(colour = "black"),
     #panel.grid = element_blank(),
-    legend.position = c(0.8, 0.22)
+    legend.position = c(0.82, 0.17)
   )
+ggsave(plot = last_plot(),
+  file = "FigureS9.eps",
+  device = cairo_ps,
+  width = 1480,
+  height = 1250,
+  unit = "px",
+  dpi = 300)
 
 ```
 
